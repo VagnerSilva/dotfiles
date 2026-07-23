@@ -3,7 +3,11 @@
 set -euo pipefail
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-ZDOTDIR="${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}"
+if [ "${ZDOTDIR:-$HOME}" = "$HOME" ]; then
+  ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+else
+  ZDOTDIR="${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}"
+fi
 
 ZINIT_HOME="${ZINIT_HOME:-$HOME/.local/repos/zinit}"
 ZINIT_REPO_URL="https://github.com/zdharma-continuum/zinit.git"
