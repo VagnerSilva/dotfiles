@@ -3,10 +3,12 @@
 set -euo pipefail
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-if [ "${ZDOTDIR:-$HOME}" = "$HOME" ]; then
-  ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+# For setup scripts, prefer HOME-scoped ZDOTDIR. Ignore inherited values that
+# point outside HOME (common in sandbox or containerized validation).
+if [ -n "${ZDOTDIR:-}" ] && [ "$ZDOTDIR" != "$HOME" ] && [[ "$ZDOTDIR" == "$HOME"/* ]]; then
+  ZDOTDIR="$ZDOTDIR"
 else
-  ZDOTDIR="${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}"
+  ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 fi
 
 ZINIT_HOME="${ZINIT_HOME:-$HOME/.local/repos/zinit}"
