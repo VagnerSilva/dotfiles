@@ -1,0 +1,45 @@
+# RC: Options
+# Modeline {{
+#	vi: foldmarker={{,}} filetype=zsh foldmethod=marker foldlevel=0 tabstop=4 shiftwidth=4:
+# }}
+
+# Documentation {{
+# PURPOSE
+#   Configures Zsh shell options (setopt / unsetopt).
+#
+# RESPONSIBILITIES
+#   ✔ Shell behavior:
+#     - directory navigation
+#     - job control
+#     - input/output behavior
+#     - word characters (affects Ctrl-W, vi text objects)
+#
+# RULE OF THUMB
+#   "Is this a `setopt` or core shell behavior?"
+#     → YES → belongs here
+#
+# LOADED FROM
+#   .zshrc
+# }}
+
+# Manual & categories: http://zsh.sourceforge.net/Doc/Release/Options.html
+setopt extendedglob		# Required for (N) glob qualifiers, (#q...) syntax, ^ negation, etc. Used int rc/completion.zsh
+setopt nobeep			# No beeps thanks!
+
+# Changing Directories
+setopt autopushd				# Add prev PWD to directory stack.
+setopt pushdignoredups			# No duplicates in dirs stack.
+setopt pushdtohome				# pushd with no args pushes $HOME.
+setopt interactivecomments		# Enable bash-like comments by prefixing a command with '#' to make it a comment.
+
+# Input/Output
+unsetopt correct correctall		# Do not encourage sloppy typing.
+#setopt nohashdirs				# No need for rehash to find new binaries.
+#setopt printexitvalue			# Print abnormal exit status.
+
+# Job Control
+setopt longlistjobs		# Display PID when suspending processes.
+
+# Shell Emulation
+setopt shnullcmd		# Truncate like in bash e.g. $(>file).
+
