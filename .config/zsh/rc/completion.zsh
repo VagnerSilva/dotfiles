@@ -97,6 +97,9 @@ fi
 # After loading, background-compile the dump to a .zwc so future loads are faster.
 autoload -Uz compinit
 typeset _zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-$ZSH_VERSION"
+# Never source a compiled completion dump. On WSL, a stale or partially-written
+# `.zwc` can make a background Zsh job terminate with Bus Error.
+rm -f "${_zcompdump}.zwc"
 # Fast path (-C, skips compaudit) only when dump exists AND is <24 h old.
 # Regenerate dump if missing or stale (>24h old).
 if [ -f "$_zcompdump" ] && [ "$_zcompdump" -nt /dev/null ]; then
