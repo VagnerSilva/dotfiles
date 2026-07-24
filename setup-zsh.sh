@@ -5,6 +5,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STOW_TARGET="$HOME"
 
+if [[ -t 1 ]]; then
+  C_RESET='\033[0m'
+  C_TITLE='\033[1;36m'
+  C_STEP='\033[1;34m'
+else
+  C_RESET=''
+  C_TITLE=''
+  C_STEP=''
+fi
+
 log() {
   printf '[INFO] %s\n' "$1"
 }
@@ -17,17 +27,34 @@ error() {
   printf '[ERROR] %s\n' "$1" >&2
 }
 
+print_title() {
+  printf '\n%s%s%s\n' "$C_TITLE" "$1" "$C_RESET"
+}
+
+print_step() {
+  printf '%s%s%s\n' "$C_STEP" "$1" "$C_RESET"
+}
+
 confirm_step() {
   local message="$1"
+  local default_answer="${2:-N}"
   local answer=""
+  local prompt_suffix='[y/N]'
+
+  if [[ "$default_answer" == "Y" ]]; then
+    prompt_suffix='[Y/n]'
+  fi
 
   while true; do
-    read -r -p "$message [y/N]: " answer
+    read -r -p "$message $prompt_suffix: " answer
     case "$answer" in
       y|Y|yes|YES)
         return 0
         ;;
       n|N|no|NO|"")
+        if [[ -z "$answer" && "$default_answer" == "Y" ]]; then
+          return 0
+        fi
         return 1
         ;;
       *)
@@ -203,28 +230,33 @@ print_summary() {
 }
 
 main() {
-  log "zsh installation and configuration script"
+  print_title "Zsh setup"
+  log "Interactive installation with safe defaults."
   print_summary
 
-  if confirm_step "Install zsh (if needed)?"; then
+  print_step "Step 1/4 - zsh package"
+  if confirm_step "Install zsh (if needed)?" "N"; then
     ensure_zsh_installed
   else
     log "Skipped zsh installation step."
   fi
 
-  if confirm_step "Install stow (if needed)?"; then
+  print_step "Step 2/4 - stow package"
+  if confirm_step "Install stow (if needed)?" "N"; then
     ensure_stow_installed
   else
     log "Skipped stow installation step."
   fi
 
-  if confirm_step "Set zsh as default shell?"; then
+  print_step "Step 3/4 - default shell"
+  if confirm_step "Set zsh as default shell?" "N"; then
     set_default_shell_to_zsh
   else
     log "Skipped default shell step."
   fi
 
-  if confirm_step "Apply dotfiles with stow?"; then
+  print_step "Step 4/4 - apply dotfiles"
+  if confirm_step "Apply dotfiles with stow?" "N"; then
     apply_stow_layout
   else
     log "Skipped stow apply step."

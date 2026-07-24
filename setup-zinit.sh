@@ -24,6 +24,16 @@ MANAGED_TOOLS=(fnm fzf starship fd bat rg direnv cloc rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
 FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
 
+if [[ -t 1 ]]; then
+  C_RESET='\033[0m'
+  C_TITLE='\033[1;36m'
+  C_STEP='\033[1;34m'
+else
+  C_RESET=''
+  C_TITLE=''
+  C_STEP=''
+fi
+
 log() {
   printf '[INFO] %s\n' "$1"
 }
@@ -36,17 +46,34 @@ warn() {
   printf '[WARN] %s\n' "$1"
 }
 
+print_title() {
+  printf '\n%s%s%s\n' "$C_TITLE" "$1" "$C_RESET"
+}
+
+print_step() {
+  printf '%s%s%s\n' "$C_STEP" "$1" "$C_RESET"
+}
+
 confirm_step() {
   local message="$1"
+  local default_answer="${2:-N}"
   local answer=""
+  local prompt_suffix='[y/N]'
+
+  if [[ "$default_answer" == "Y" ]]; then
+    prompt_suffix='[Y/n]'
+  fi
 
   while true; do
-    read -r -p "$message [y/N]: " answer
+    read -r -p "$message $prompt_suffix: " answer
     case "$answer" in
       y|Y|yes|YES)
         return 0
         ;;
       n|N|no|NO|"")
+        if [[ -z "$answer" && "$default_answer" == "Y" ]]; then
+          return 0
+        fi
         return 1
         ;;
       *)
@@ -253,7 +280,16 @@ report_external_tool_status() {
 }
 
 configure_optional_fzf_tab() {
-  if confirm_step "Enable fzf-tab plugin (fuzzy tab-completion UI)?"; then
+  local default_answer="N"
+
+  if [ -f "$FZF_TAB_FLAG_FILE" ]; then
+    default_answer="Y"
+    log "Current fzf-tab status: enabled"
+  else
+    log "Current fzf-tab status: disabled"
+  fi
+
+  if confirm_step "Enable fzf-tab plugin (fuzzy tab-completion UI)?" "$default_answer"; then
     mkdir -p "$(dirname "$FZF_TAB_FLAG_FILE")"
     : > "$FZF_TAB_FLAG_FILE"
     log "fzf-tab enabled."
@@ -271,10 +307,16 @@ install_optional_plugins() {
 }
 
 main() {
+  print_title "Zinit setup"
+  log "Interactive installation with optional plugin toggles."
+
+  print_step "Step 1/2 - optional plugins"
+  configure_optional_fzf_tab
+
+  print_step "Step 2/2 - zinit and managed tools"
   ensure_dependencies
   require_command git
   verify_stow_layout
-  configure_optional_fzf_tab
   ensure_parent_directory
   clone_or_update_zinit
   verify_installation
