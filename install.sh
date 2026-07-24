@@ -7,16 +7,6 @@ SETUP_ZSH="$SCRIPT_DIR/setup-zsh.sh"
 SETUP_ZINIT="$SCRIPT_DIR/setup-zinit.sh"
 SETUP_NERD_FONT="$SCRIPT_DIR/setup-nerd-font.sh"
 
-# Color codes (disabled if not interactive terminal)
-C_RESET=''
-C_TITLE=''
-C_STEP=''
-if [[ -t 1 ]] 2>/dev/null; then
-  C_RESET='\033[0m'
-  C_TITLE='\033[1;36m'
-  C_STEP='\033[1;34m'
-fi
-
 log() {
   printf '[INFO] %s\n' "$1"
 }
@@ -26,11 +16,11 @@ error() {
 }
 
 print_title() {
-  printf '\n%s%s%s\n' "$C_TITLE" "$1" "$C_RESET"
+  printf '\n### %s ###\n' "$1"
 }
 
 print_step() {
-  printf '%s%s%s\n' "$C_STEP" "$1" "$C_RESET"
+  printf '%s\n' "$1"
 }
 
 require_file() {

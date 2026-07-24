@@ -5,16 +5,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STOW_TARGET="$HOME"
 
-# Color codes (disabled if not interactive terminal)
-C_RESET=''
-C_TITLE=''
-C_STEP=''
-if [[ -t 1 ]] 2>/dev/null; then
-  C_RESET='\033[0m'
-  C_TITLE='\033[1;36m'
-  C_STEP='\033[1;34m'
-fi
-
 log() {
   printf '[INFO] %s\n' "$1"
 }
@@ -28,44 +18,21 @@ error() {
 }
 
 print_title() {
-  printf '\n%s%s%s\n' "$C_TITLE" "$1" "$C_RESET"
+  printf '\n### %s ###\n' "$1"
 }
 
 print_step() {
-  printf '%s%s%s\n' "$C_STEP" "$1" "$C_RESET"
+  printf '%s\n' "$1"
 }
 
 confirm_step() {
   local message="$1"
-  local default_answer="${2:-N}"
-  local answer=""
-  local prompt_suffix='[y/N]'
-
-  if [[ "$default_answer" == "Y" ]]; then
-    prompt_suffix='[Y/n]'
-  fi
-
-  read -r -p "$message $prompt_suffix: " answer
-
+  local answer
+  printf '%s [y/N]: ' "$message"
+  read -r answer
   case "$answer" in
-    y|Y|yes|YES)
-      return 0
-      ;;
-    n|N|no|NO)
-      return 1
-      ;;
-    "")
-      # Empty input uses default
-      if [[ "$default_answer" == "Y" ]]; then
-        return 0
-      else
-        return 1
-      fi
-      ;;
-    *)
-      warn "Invalid answer. Use y or n."
-      return 1
-      ;;
+    y|Y|yes|YES) return 0 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -240,28 +207,28 @@ main() {
   print_summary
 
   print_step "Step 1/4 - zsh package"
-  if confirm_step "Install zsh (if needed)?" "N"; then
+  if confirm_step "Install zsh (if needed)?"; then
     ensure_zsh_installed
   else
     log "Skipped zsh installation step."
   fi
 
   print_step "Step 2/4 - stow package"
-  if confirm_step "Install stow (if needed)?" "N"; then
+  if confirm_step "Install stow (if needed)?"; then
     ensure_stow_installed
   else
     log "Skipped stow installation step."
   fi
 
   print_step "Step 3/4 - default shell"
-  if confirm_step "Set zsh as default shell?" "N"; then
+  if confirm_step "Set zsh as default shell?"; then
     set_default_shell_to_zsh
   else
     log "Skipped default shell step."
   fi
 
   print_step "Step 4/4 - apply dotfiles"
-  if confirm_step "Apply dotfiles with stow?" "N"; then
+  if confirm_step "Apply dotfiles with stow?"; then
     apply_stow_layout
   else
     log "Skipped stow apply step."

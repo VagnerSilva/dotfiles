@@ -24,16 +24,6 @@ MANAGED_TOOLS=(fnm fzf starship fd bat rg direnv cloc rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
 FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
 
-# Color codes (disabled if not interactive terminal)
-C_RESET=''
-C_TITLE=''
-C_STEP=''
-if [[ -t 1 ]] 2>/dev/null; then
-  C_RESET='\033[0m'
-  C_TITLE='\033[1;36m'
-  C_STEP='\033[1;34m'
-fi
-
 log() {
   printf '[INFO] %s\n' "$1"
 }
@@ -47,44 +37,21 @@ warn() {
 }
 
 print_title() {
-  printf '\n%s%s%s\n' "$C_TITLE" "$1" "$C_RESET"
+  printf '\n### %s ###\n' "$1"
 }
 
 print_step() {
-  printf '%s%s%s\n' "$C_STEP" "$1" "$C_RESET"
+  printf '%s\n' "$1"
 }
 
 confirm_step() {
   local message="$1"
-  local default_answer="${2:-N}"
-  local answer=""
-  local prompt_suffix='[y/N]'
-
-  if [[ "$default_answer" == "Y" ]]; then
-    prompt_suffix='[Y/n]'
-  fi
-
-  read -r -p "$message $prompt_suffix: " answer
-
+  local answer
+  printf '%s [y/N]: ' "$message"
+  read -r answer
   case "$answer" in
-    y|Y|yes|YES)
-      return 0
-      ;;
-    n|N|no|NO)
-      return 1
-      ;;
-    "")
-      # Empty input uses default
-      if [[ "$default_answer" == "Y" ]]; then
-        return 0
-      else
-        return 1
-      fi
-      ;;
-    *)
-      warn "Invalid answer. Use y or n."
-      return 1
-      ;;
+    y|Y|yes|YES) return 0 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -285,16 +252,13 @@ report_external_tool_status() {
 }
 
 configure_optional_fzf_tab() {
-  local default_answer="N"
-
   if [ -f "$FZF_TAB_FLAG_FILE" ]; then
-    default_answer="Y"
     log "Current fzf-tab status: enabled"
   else
     log "Current fzf-tab status: disabled"
   fi
 
-  if confirm_step "Enable fzf-tab plugin (fuzzy tab-completion UI)?" "$default_answer"; then
+  if confirm_step "Enable fzf-tab plugin (fuzzy tab-completion UI)?"; then
     mkdir -p "$(dirname "$FZF_TAB_FLAG_FILE")"
     : > "$FZF_TAB_FLAG_FILE"
     log "fzf-tab enabled."
@@ -306,8 +270,7 @@ configure_optional_fzf_tab() {
 
 install_optional_plugins() {
   if [ -f "$FZF_TAB_FLAG_FILE" ]; then
-    log "Installing optional plugin: fzf-tab"
-    ZDOTDIR="$ZDOTDIR" zsh -ic 'true' >/dev/null
+    log "Optional plugins enabled. They will load on next shell startup."
   fi
 }
 
