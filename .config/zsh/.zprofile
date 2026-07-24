@@ -47,6 +47,8 @@ source "$ZDOTDIR/env/xdg-zsh.zsh"
 source "$ZDOTDIR/env/paths.zsh"
 source "$ZDOTDIR/env/general.zsh"
 source "$ZDOTDIR/env/programs.zsh"
+source "$ZDOTDIR/env/p10k.zsh"
+source "$ZDOTDIR/env/sdkman.zsh"
 
 # Mark as sourced so .zshrc can skip re-sourcing on login shells.
 export _ZPROFILE_SOURCED=1
