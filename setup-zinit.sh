@@ -9,6 +9,7 @@ ZINIT_HOME="${ZINIT_HOME:-$HOME/.local/repos/zinit}"
 ZINIT_REPO_URL="https://github.com/zdharma-continuum/zinit.git"
 ZINIT_ENTRYPOINT="$ZINIT_HOME/zinit.zsh"
 ZINIT_RC_FILE="$ZDOTDIR/rc/zinit.zsh"
+ZINIT_PLUGIN_DIR="${ZINIT_PLUGIN_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/zinit/plugins}"
 
 # Installation policy:
 # - Core dependencies are installed by package manager.
@@ -220,6 +221,15 @@ verify_installation() {
   log "zinit ready at $ZINIT_HOME"
 }
 
+remove_compiled_plugin_cache() {
+  if [ ! -d "$ZINIT_PLUGIN_DIR" ]; then
+    return 0
+  fi
+
+  find "$ZINIT_PLUGIN_DIR" -type f -name '*.zwc' -delete
+  log "Removed compiled Zinit plugin cache from $ZINIT_PLUGIN_DIR"
+}
+
 install_managed_tools() {
   log "Managed tools will be installed via zinit on first shell load."
 }
@@ -280,6 +290,7 @@ main() {
   ensure_parent_directory
   clone_or_update_zinit
   verify_installation
+  remove_compiled_plugin_cache
   install_managed_tools
   install_optional_plugins
   report_external_tool_status

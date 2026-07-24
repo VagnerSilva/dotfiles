@@ -122,14 +122,14 @@ zinit light seebi/dircolors-solarized
 # fzf-marks — bookmark directories with fzf.
 # Cloned here for zinit to manage updates, but NOT sourced yet.
 # Must load after bindkey -v (rc/bindings.zsh), so it is sourced in rc/tools.zsh.
-zinit ice pick"/dev/null"
+zinit ice pick"/dev/null" nocompile
 zinit light urbainvaes/fzf-marks
 # }}
 
 # Shell plugins {{
 # Extra completions — eager: must populate fpath before compinit (rc/completion.zsh).
 # blockf: lets zinit control fpath injection timing.
-zinit ice blockf lucid
+zinit ice blockf lucid nocompile
 zinit light zsh-users/zsh-completions
 
 # Load ZLE plugins synchronously after compinit to avoid background startup jobs.
@@ -139,20 +139,20 @@ zinit light zsh-users/zsh-completions
 # initialized completion system and syntax highlighting remains last.
 load_zle_plugins() {
 	# Inline suggestions (like fish). atload'!' activates the widget immediately.
-	zinit ice lucid atload'!_zsh_autosuggest_start'
+	zinit ice lucid nocompile atload'!_zsh_autosuggest_start'
 	zinit light zsh-users/zsh-autosuggestions
 
 	# fzf-based tab completion UI (optional).
 	if [ -f "${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled" ]; then
-		zinit ice lucid
+		zinit ice lucid nocompile
 		zinit light Aloxaf/fzf-tab
 	fi
 
 	# Auto-pair brackets, quotes, etc. — inserts closing ), ], }, ", ' automatically.
-	zinit ice lucid
+	zinit ice lucid nocompile
 	zinit light hlissner/zsh-autopair
 
 	# Syntax highlighting must be last because it wraps ZLE's self-insert widget.
-	zinit ice lucid
+	zinit ice lucid nocompile
 	zinit light zdharma-continuum/fast-syntax-highlighting
 }
