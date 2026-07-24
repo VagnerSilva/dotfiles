@@ -119,9 +119,7 @@ zinit light urbainvaes/fzf-marks
 zinit ice blockf lucid
 zinit light zsh-users/zsh-completions
 
-# Load ZLE plugins synchronously after compinit. Loading them through Zinit's
-# Turbo scheduler creates background zsh jobs, which can intermittently end in
-# "Bus error" when several terminals start at the same time.
+# Load ZLE plugins synchronously after compinit to avoid background startup jobs.
 #
 # This function is called by .zshrc after rc/completion.zsh. Keeping it here
 # lets Zinit continue managing the plugins while ensuring fzf-tab sees an

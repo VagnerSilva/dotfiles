@@ -14,11 +14,6 @@ source_if_exists() {
   fi
 }
 
-# A terminal spawned by an existing Zsh inherits ZDOTDIR and skips ~/.zshenv.
-# Load the optional recorder here as well so every interactive terminal is
-# covered, not only login shells.
-source_if_exists "$ZDOTDIR/env/startup-debug.zsh"
-
 # ========================================
 # 🧱 RC MODULES
 # ========================================

@@ -6,7 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SETUP_ZSH="$SCRIPT_DIR/setup-zsh.sh"
 SETUP_ZINIT="$SCRIPT_DIR/setup-zinit.sh"
 SETUP_NERD_FONT="$SCRIPT_DIR/setup-nerd-font.sh"
-DEBUG_ZSH_BUS_ERROR="$SCRIPT_DIR/debug-zsh-bus-error.sh"
 
 log() {
   printf '[INFO] %s\n' "$1"
@@ -47,7 +46,6 @@ main() {
   require_file "$SETUP_ZSH"
   require_file "$SETUP_ZINIT"
   require_file "$SETUP_NERD_FONT"
-  require_file "$DEBUG_ZSH_BUS_ERROR"
 
   run_step "Step 1/3 - zsh setup" "$SETUP_ZSH"
   run_step "Step 2/3 - zinit setup" "$SETUP_ZINIT"
@@ -55,7 +53,6 @@ main() {
 
   printf '\nDone.\n'
   printf 'Open a new zsh session to apply all changes.\n'
-  printf 'If startup tracing was enabled, inspect logs in %s/zsh/debug.\n' "${XDG_STATE_HOME:-$HOME/.local/state}"
 }
 
 main "$@"
