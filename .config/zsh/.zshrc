@@ -31,8 +31,3 @@ source_if_exists "$ZDOTDIR/rc/tools.zsh"
 if type load_zle_plugins >/dev/null 2>&1; then
   load_zle_plugins
 fi
-
-# Load p10k configuration
-if [ -f ~/.p10k.zsh ]; then
-  source ~/.p10k.zsh
-fi
