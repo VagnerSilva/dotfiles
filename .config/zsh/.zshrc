@@ -43,3 +43,6 @@ export GOPATH=/home/vagners/homebrew/go
 export PATH=$PATH:$GOPATH/bin
 
 source_if_exists "$HOME/.local/bin/env"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
