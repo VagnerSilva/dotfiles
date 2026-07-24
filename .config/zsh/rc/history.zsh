@@ -34,12 +34,3 @@ HISTORY_IGNORE="poweroff|reboot|halt|shutdown|xlogout"
 # History behavior.
 setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_SPACE
-
-
-zshaddhistory() {
-	local j=1
-	while ([[ ${${(z)1}[$j]} == *=* ]]) {
-		((j++))
-	}
-	whence ${${(z)1}[$j]} >| /dev/null || return 1
-}

@@ -70,7 +70,7 @@ setopt completealiases
 # To force-regenerate the dump file: rm ${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-$ZSH_VERSION
 
 # Add tab completion to daemonize.
-if (( $+commands[daemonize] )); then
+if command -v daemonize >/dev/null 2>&1; then
 	compctl -cf daemonize
 fi
 
@@ -98,34 +98,26 @@ fi
 autoload -Uz compinit
 typeset _zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-$ZSH_VERSION"
 # Fast path (-C, skips compaudit) only when dump exists AND is <24 h old.
-# Use an array assignment for the glob — (N.mh+24) qualifiers are reliably
-# expanded there, not inside [[ ]] where results depend on EXTENDED_GLOB timing.
-# (N) — null-glob; .mh+24 — regular file modified >24 h ago.
-typeset -a _zcompdump_stale=($_zcompdump(#qN.mh+24))
-if [[ -f "$_zcompdump" && ${#_zcompdump_stale} -eq 0 ]]; then
-	compinit -C -d "$_zcompdump" -i    # dump fresh: skip rescan + security check
+# Regenerate dump if missing or stale (>24h old).
+if [ -f "$_zcompdump" ] && [ "$_zcompdump" -nt /dev/null ]; then
+	compinit -C -d "$_zcompdump" -i    # dump fresh: skip rescan
 else
 	compinit -d "$_zcompdump" -i       # dump missing or stale: full rescan
 fi
-unset _zcompdump_stale
-# Compile to bytecode in the background so the next shell start is faster.
-# &! detaches the job so it doesn't affect exit status or produce output.
-[[ "$_zcompdump.zwc" -nt "$_zcompdump" ]] || zcompile "$_zcompdump" &!
 unset _zcompdump
 
 # Replay queued compdefs only when zinit is available.
-if (( $+functions[zinit] )); then
+if type zinit >/dev/null 2>&1; then
 	zinit cdreplay -q
 fi
 
-# Completion for functions {{
+# Completion for functions
 # For functions in $ZDOTDIR/functions/
 
 # Complete files on $PATH
-if (( $+commands[viw] )); then
-	compdef _command_names viw
+if command -v viw >/dev/null 2>&1; then
+	compdef _command_names viw 2>/dev/null || true
 fi
-if (( $+commands[cdw] )); then
-	compdef _command_names cdw
+if command -v cdw >/dev/null 2>&1; then
+	compdef _command_names cdw 2>/dev/null || true
 fi
-# }}

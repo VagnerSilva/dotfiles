@@ -38,61 +38,64 @@
 # (( $+commands[gpg] )) && export GPG_TTY=$TTY
 
 # fnm — Node version manager environment.
-if (( $+commands[fnm] )); then
+if command -v fnm >/dev/null 2>&1; then
 	_fnm_env_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fnm_env.zsh"
-	if [[ ! -s "$_fnm_env_cache" ]] || [[ "${commands[fnm]}" -nt "$_fnm_env_cache" ]]; then
-		fnm env --shell zsh >| "$_fnm_env_cache"
+	if [ ! -s "$_fnm_env_cache" ] || [ "$(command -v fnm)" -nt "$_fnm_env_cache" ] 2>/dev/null; then
+		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+		fnm env --shell zsh > "$_fnm_env_cache"
 	fi
-	source "$_fnm_env_cache"
+	if [ -f "$_fnm_env_cache" ]; then
+		source "$_fnm_env_cache"
+	fi
 	unset _fnm_env_cache
 fi
 
 # mise — interactive shell integration for runtime shims and hooks.
-# Cache the activation script to avoid spawning mise on every interactive shell.
-# Regenerate when the mise binary changes or the cache points at a different binary.
-if (( $+commands[mise] )); then
-	_mise_bin="${commands[mise]}"
+if command -v mise >/dev/null 2>&1; then
 	_mise_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/mise_activate.zsh"
-	if [[ ! -s "$_mise_cache" ]] || [[ "$_mise_bin" -nt "$_mise_cache" ]] || ! grep -Fq "$_mise_bin" "$_mise_cache"; then
-		test -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh" || mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
-		"$_mise_bin" activate zsh >| "$_mise_cache"
+	if [ ! -s "$_mise_cache" ]; then
+		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+		mise activate zsh > "$_mise_cache"
 	fi
-	source "$_mise_cache"
-	unset _mise_bin _mise_cache
+	if [ -f "$_mise_cache" ]; then
+		source "$_mise_cache"
+	fi
+	unset _mise_cache
 fi
 
 # starship — cross-shell prompt.
-# Cache the init hook to avoid eval "$(starship init zsh)" subprocess on every shell start.
-# Works whether starship was installed via Homebrew, zinit, or anything else.
-# Regenerated automatically when the starship binary is newer than the cache.
-if (( $+commands[starship] )); then
+if command -v starship >/dev/null 2>&1; then
 	_starship_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/starship_init.zsh"
-	if [[ ! -s "$_starship_cache" ]] || [[ "${commands[starship]}" -nt "$_starship_cache" ]]; then
-		starship init zsh >| "$_starship_cache"
+	if [ ! -s "$_starship_cache" ]; then
+		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+		starship init zsh > "$_starship_cache"
 	fi
-	source "$_starship_cache"
+	if [ -f "$_starship_cache" ]; then
+		source "$_starship_cache"
+	fi
 	unset _starship_cache
 fi
 
 # bat / batman — interactive pager and man-page styling.
 export BAT_THEME="Solarized (light)" # Works for dark mode as well.
-if (( $+commands[batman] )); then
+if command -v batman >/dev/null 2>&1; then
 	_batman_env_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/batman_env.zsh"
-	if [[ ! -s "$_batman_env_cache" ]] || [[ "${commands[batman]}" -nt "$_batman_env_cache" ]]; then
-		batman --export-env >| "$_batman_env_cache"
+	if [ ! -s "$_batman_env_cache" ]; then
+		batman --export-env > "$_batman_env_cache"
 	fi
-	source "$_batman_env_cache"
+	if [ -f "$_batman_env_cache" ]; then
+		source "$_batman_env_cache"
+	fi
 	unset _batman_env_cache
 fi
 
 # broot - https://dystroy.org/broot/install-br/
-# Define br() directly instead of sourcing the launcher script on every shell.
-if (( $+commands[broot] )); then
+if command -v broot >/dev/null 2>&1; then
 	br() {
 		local cmd cmd_file code
 		cmd_file=$(mktemp)
 		if broot --outcmd "$cmd_file" "$@"; then
-			cmd=$(<"$cmd_file")
+			cmd=$(cat "$cmd_file")
 			command rm -f "$cmd_file"
 			eval "$cmd"
 		else
@@ -104,52 +107,52 @@ if (( $+commands[broot] )); then
 fi
 
 # fzf — binary installed via zinit (see zinit.zsh). https://github.com/junegunn/fzf
-if (( $+commands[fzf] )); then
-	# Cache shell init to file to speed up shell initialization.
-	# Regenerate when fzf binary is newer than cache (e.g. after zinit update).
+if command -v fzf >/dev/null 2>&1; then
 	fzf_init_file="${XDG_CACHE_HOME:-$HOME/.cache}/fzf.zsh"
-	if [[ ! -s "$fzf_init_file" ]] || [[ "${commands[fzf]}" -nt "$fzf_init_file" ]]; then
-		if ! fzf --zsh >| "$fzf_init_file" 2>/dev/null; then
-			: >| "$fzf_init_file"
+	if [ ! -s "$fzf_init_file" ]; then
+		if fzf --zsh > "$fzf_init_file" 2>/dev/null; then
+			:
+		else
+			touch "$fzf_init_file"
 			# Fallback for older distro packages that do not support `fzf --zsh`.
-			[[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]] && cat /usr/share/doc/fzf/examples/key-bindings.zsh >> "$fzf_init_file"
-			[[ -f /usr/share/doc/fzf/examples/completion.zsh ]] && cat /usr/share/doc/fzf/examples/completion.zsh >> "$fzf_init_file"
+			if [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]; then
+				cat /usr/share/doc/fzf/examples/key-bindings.zsh >> "$fzf_init_file"
+			fi
+			if [ -f /usr/share/doc/fzf/examples/completion.zsh ]; then
+				cat /usr/share/doc/fzf/examples/completion.zsh >> "$fzf_init_file"
+			fi
 		fi
 	fi
-	[[ -s "$fzf_init_file" ]] && source "$fzf_init_file"
+	if [ -s "$fzf_init_file" ]; then
+		source "$fzf_init_file"
+	fi
 	unset fzf_init_file
 
 	# Default cli options. See fzf(1)
 	export FZF_COMPLETION_OPTS='--multi'
 
 	# Find dot files as well. Reference: https://github.com/junegunn/fzf/issues/634
-	if (( $+commands[fd] )); then
-		#export FZF_DEFAULT_COMMAND="rg --hidden --files --glob '!{.git,node_modules}/'"
-		#export FZF_DEFAULT_COMMAND='fd --type file --hidden --follow --exclude node_modules'
+	if command -v fd >/dev/null 2>&1; then
 		export FZF_DEFAULT_COMMAND='fd --type file --hidden --follow'
-	elif (( $+commands[fdfind] )); then # apt-get name
+	elif command -v fdfind >/dev/null 2>&1; then
 		export FZF_DEFAULT_COMMAND='fdfind --type file --hidden --follow'
 	else
 		export FZF_DEFAULT_COMMAND='find . -type d \( -path './.git' -o -path './node_modules'  \) -prune -o -print'
 	fi
 	export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-
-	# To exclude path:
-	#export FZF_DEFAULT_COMMAND="$FZF_DEFAULT_COMMAND --exclude 'vcr_cassettes/'"
 	export FZF_DEFAULT_COMMAND="$FZF_DEFAULT_COMMAND --exclude '.git/'"
 fi
 
 
 # direnv — binary installed via zinit (see zinit.zsh). https://direnv.net/
-# Wires _direnv_hook into precmd_functions and chpwd_functions so .envrc files are loaded/unloaded automatically on directory change.
-# Hook output is stable between runs, so cache it like fzf/brew to avoid a subprocess on every shell.
-# Regenerate when direnv binary is newer than cache (e.g. after zinit update).
-if (( $+commands[direnv] )); then
+if command -v direnv >/dev/null 2>&1; then
 	_direnv_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
-	if [[ ! -s "$_direnv_cache" ]] || [[ "${commands[direnv]}" -nt "$_direnv_cache" ]]; then
-		direnv hook zsh >| "$_direnv_cache"
+	if [ ! -s "$_direnv_cache" ]; then
+		direnv hook zsh > "$_direnv_cache"
 	fi
-	source "$_direnv_cache"
+	if [ -f "$_direnv_cache" ]; then
+		source "$_direnv_cache"
+	fi
 	unset _direnv_cache
 fi
 
@@ -161,17 +164,9 @@ fi
 #fi
 
 # fzf-marks: https://github.com/urbainvaes/fzf-marks
-# Sourced here (not in zinit.zsh) because it must load after bindkey -v in rc/bindings.zsh.
-# The plugin is cloned and updated by zinit; we source it manually from zinit's plugin directory.
 _fzf_marks_plugin="${ZINIT[PLUGINS_DIR]}/urbainvaes---fzf-marks/fzf-marks.plugin.zsh"
-if [[ -f "$_fzf_marks_plugin" ]]; then
-	# Set before sourcing so the plugin picks them up.
-	# Explicit full command (not appending to $FZF_MARKS_COMMAND) avoids
-	# the variable being empty and producing "--exact" as the base command.
-	# --exact --select-1: jump to exact match directly if only match.
-	# --nth=1 --delimiter=' : ': only search the bookmark names, not values.
+if [ -f "$_fzf_marks_plugin" ]; then
 	FZF_MARKS_COMMAND="fzf --exact --select-1 --nth=1 --delimiter=' : '"
-	# Be consistent with default fzf behaviour. ctrl-d should close selection window, not delete things.
 	FZF_MARKS_DELETE=ctrl-r
 	source "$_fzf_marks_plugin"
 fi
