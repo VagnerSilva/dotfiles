@@ -177,7 +177,7 @@ apply_stow_layout() {
 
   (
     cd "$SCRIPT_DIR"
-    stow --target="$STOW_TARGET" --restow --ignore='^\.git$' --ignore='^setup-.*\.sh$' .
+    stow --target="$STOW_TARGET" --restow --ignore='^\.git$' --ignore='^setup-.*\.sh$' --ignore='^uninstall\.sh$' .
   )
 
   log "Dotfiles linked with stow to $STOW_TARGET"
