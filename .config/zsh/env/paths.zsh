@@ -42,5 +42,4 @@ test -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh" || mkdir -p "${XDG_CACHE_HOME:-$HO
 test -d "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" && fpath=("${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" $fpath)
 test -d "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions" && fpath=("${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions" $fpath)
 
-# Export PATH from the path array.
-export PATH="${(j.:.)path}"
+# PATH is already properly set and exported by this point
