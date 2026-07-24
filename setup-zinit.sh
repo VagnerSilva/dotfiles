@@ -17,6 +17,7 @@ ZINIT_RC_FILE="$ZDOTDIR/rc/zinit.zsh"
 MANAGED_TOOLS=(fnm fzf starship fd bat rg direnv cloc rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
 FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
+BUS_ERROR_DEBUG_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/bus-error-debug.enabled"
 
 log() {
   printf '[INFO] %s\n' "$1"
@@ -85,7 +86,7 @@ install_dependencies() {
 
   if [ -z "$pm" ]; then
     error "Could not detect package manager automatically."
-    error "Install manually: git zsh curl tar gzip unzip xz"
+    error "Install manually: git zsh curl tar gzip unzip xz strace"
     return 1
   fi
 
@@ -94,22 +95,22 @@ install_dependencies() {
   case "$pm" in
     apt)
       sudo apt-get update
-      sudo apt-get install -y git zsh curl tar gzip unzip xz-utils
+      sudo apt-get install -y git zsh curl tar gzip unzip xz-utils strace
       ;;
     dnf)
-      sudo dnf install -y git zsh curl tar gzip unzip xz
+      sudo dnf install -y git zsh curl tar gzip unzip xz strace
       ;;
     yum)
-      sudo yum install -y git zsh curl tar gzip unzip xz
+      sudo yum install -y git zsh curl tar gzip unzip xz strace
       ;;
     pacman)
-      sudo pacman -Sy --noconfirm git zsh curl tar gzip unzip xz
+      sudo pacman -Sy --noconfirm git zsh curl tar gzip unzip xz strace
       ;;
     zypper)
-      sudo zypper --non-interactive install git zsh curl tar gzip unzip xz
+      sudo zypper --non-interactive install git zsh curl tar gzip unzip xz strace
       ;;
     apk)
-      sudo apk add git zsh curl tar gzip unzip xz
+      sudo apk add git zsh curl tar gzip unzip xz strace
       ;;
     *)
       error "Unsupported package manager: $pm"
@@ -123,7 +124,7 @@ ensure_dependencies() {
   local dep
   local missing
 
-  deps=(git zsh curl tar gzip unzip xz)
+  deps=(git zsh curl tar gzip unzip xz strace)
   missing=()
 
   for dep in "${deps[@]}"; do
@@ -227,6 +228,23 @@ configure_optional_fzf_tab() {
   fi
 }
 
+configure_bus_error_diagnostics() {
+  if [ -f "$BUS_ERROR_DEBUG_FLAG_FILE" ]; then
+    log "Startup diagnostic status: enabled"
+  else
+    log "Startup diagnostic status: disabled"
+  fi
+
+  if confirm_step "Enable startup tracing to diagnose the Bus Error?"; then
+    mkdir -p "$(dirname "$BUS_ERROR_DEBUG_FLAG_FILE")"
+    : > "$BUS_ERROR_DEBUG_FLAG_FILE"
+    log "Startup tracing enabled. Each new terminal records its startup under ${XDG_STATE_HOME:-$HOME/.local/state}/zsh/debug."
+  else
+    rm -f "$BUS_ERROR_DEBUG_FLAG_FILE"
+    log "Startup tracing disabled."
+  fi
+}
+
 install_optional_plugins() {
   if [ -f "$FZF_TAB_FLAG_FILE" ]; then
     log "Optional plugins enabled. They will load on next shell startup."
@@ -237,10 +255,13 @@ main() {
   print_title "Zinit setup"
   log "Interactive installation with optional plugin toggles."
 
-  print_step "Step 1/2 - optional plugins"
+  print_step "Step 1/3 - optional plugins"
   configure_optional_fzf_tab
 
-  print_step "Step 2/2 - zinit and managed tools"
+  print_step "Step 2/3 - Bus Error diagnostics"
+  configure_bus_error_diagnostics
+
+  print_step "Step 3/3 - zinit and managed tools"
   ensure_dependencies
   require_command git
   verify_stow_layout
