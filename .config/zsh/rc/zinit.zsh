@@ -89,6 +89,12 @@ if ((!$+commands[direnv])); then
 	zinit light direnv/direnv
 fi
 
+# fnm — fast Node version manager.
+if ((!$+commands[fnm])); then
+	zinit ice from"gh-r" as"program" pick"fnm"
+	zinit light Schniz/fnm
+fi
+
 # cloc — count lines of code. Perl script, no compilation needed.
 if ((!$+commands[cloc])); then
 	zinit ice as"program" pick"cloc"

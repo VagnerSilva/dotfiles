@@ -122,6 +122,10 @@ fi
 # For functions in $ZDOTDIR/functions/
 
 # Complete files on $PATH
-compdef _command_names viw
-compdef _command_names cdw
+if (( $+commands[viw] )); then
+	compdef _command_names viw
+fi
+if (( $+commands[cdw] )); then
+	compdef _command_names cdw
+fi
 # }}

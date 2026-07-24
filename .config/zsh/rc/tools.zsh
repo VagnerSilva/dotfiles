@@ -37,6 +37,16 @@
 # Set here rather than env/programs.zsh: only meaningful for interactive shells with a TTY.
 # (( $+commands[gpg] )) && export GPG_TTY=$TTY
 
+# fnm — Node version manager environment.
+if (( $+commands[fnm] )); then
+	_fnm_env_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fnm_env.zsh"
+	if [[ ! -s "$_fnm_env_cache" ]] || [[ "${commands[fnm]}" -nt "$_fnm_env_cache" ]]; then
+		fnm env --shell zsh >| "$_fnm_env_cache"
+	fi
+	source "$_fnm_env_cache"
+	unset _fnm_env_cache
+fi
+
 # mise — interactive shell integration for runtime shims and hooks.
 # Cache the activation script to avoid spawning mise on every interactive shell.
 # Regenerate when the mise binary changes or the cache points at a different binary.

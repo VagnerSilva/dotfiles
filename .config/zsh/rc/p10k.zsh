@@ -8,7 +8,6 @@
 #   Loads and configures the PowerLevel10k theme.
 #
 # RESPONSIBILITIES
-#   ✔ Load P10k instant prompt (must be at top of .zshrc)
 #   ✔ Load P10k theme
 #   ✔ Source saved P10k configuration
 #   ✔ Provide fallback prompt
@@ -16,11 +15,6 @@
 # LOADED FROM
 #   .zshrc (interactive shells)
 # }}
-
-# PowerLevel10k instant prompt - MUST be at the very top
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
 
 # Load PowerLevel10k theme
 if [[ -f "$HOME/.zsh/themes/powerlevel10k/powerlevel10k.zsh-theme" ]]; then
