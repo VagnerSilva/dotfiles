@@ -64,7 +64,7 @@ if command -v mise >/dev/null 2>&1; then
 fi
 
 # starship — cross-shell prompt.
-if (( ! $+functions[p10k] )) && command -v starship >/dev/null 2>&1; then
+if command -v starship >/dev/null 2>&1; then
 	_starship_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/starship_init.zsh"
 	if [ ! -s "$_starship_cache" ]; then
 		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"

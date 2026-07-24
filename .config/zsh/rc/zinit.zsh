@@ -43,10 +43,6 @@ esac
 
 # Plugins {{
 
-# PowerLevel10k theme.
-zinit ice lucid nocompile
-zinit light romkatv/powerlevel10k
-
 # Binary tools {{
 # Installed directly from GitHub Releases as a fallback.
 # If the tool is already on PATH (e.g. via Homebrew on macOS or apt on Linux),
