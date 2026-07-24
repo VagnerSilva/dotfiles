@@ -1,9 +1,5 @@
 # RC: Zinit Plugin Manager
-# Modeline {{
-#	vi: foldmarker={{,}} filetype=zsh foldmethod=marker foldlevel=0 tabstop=4 shiftwidth=4:
-# }}
 
-# Documentation {{
 # PURPOSE
 #   Bootstraps Zinit and loads all shell plugins.
 #
@@ -20,25 +16,17 @@
 #   - Binary tools are fetched from GitHub Releases — no package manager needed.
 #     Works on macOS, Linux, and devcontainers alike.
 #   - To update all plugins and binaries: zinit update
-#
-# LOADED FROM
-#   .zshrc (interactive only)
-# }}
 
-# Secrets (gitignore'd!). Loaded here so they are available to all rc/* files that follow. smart-suggestionsion plugin is the only one currently needing this, but may as well load it for any future plugins that need secrets.
+# Secrets (gitignore'd!). Loaded here so they are available to all rc/* files that follow.
 # [ -f "$ZDOTDIR/env.local" ] && source "$ZDOTDIR/env.local"
 
-# Zinit bootstrap {{
+# Zinit bootstrap
 ZINIT_HOME="$HOME/.local/repos/zinit"
-if [[ ! -f "$ZINIT_HOME/zinit.zsh" ]]; then
+if [ ! -f "$ZINIT_HOME/zinit.zsh" ]; then
 	echo "zinit not found at $ZINIT_HOME — run the install script" >&2
 	return 1
 fi
 source "$ZINIT_HOME/zinit.zsh"
-# Autoload zinit's completion/annotation functions.
-# autoload -Uz _zinit
-# (( ${+_comps} )) && _comps[zinit]=_zinit
-# }}
 
 # Plugins {{
 
@@ -51,58 +39,55 @@ source "$ZINIT_HOME/zinit.zsh"
 #
 
 # fzf — fuzzy finder. Shell integration configured in rc/tools.zsh.
-if ((!$+commands[fzf])); then
+if ! command -v fzf >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"fzf"
 	zinit light junegunn/fzf
 fi
 
 # starship — cross-shell prompt. Init hook is sourced in rc/tools.zsh.
-# NOTE: starship's init hook is cached in rc/tools.zsh and works regardless of how starship was installed (zinit or Homebrew). Only the binary install is gated here.
-if ((!$+commands[starship])); then
+if ! command -v starship >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"starship"
 	zinit light starship/starship
 fi
 
 # fd — fast alternative to find.
-if ((!$+commands[fd])); then
+if ! command -v fd >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"**/fd"
 	zinit light sharkdp/fd
 fi
 
 # bat — cat with syntax highlighting. Used as MANPAGER in rc/tools.zsh.
-if ((!$+commands[bat])); then
+if ! command -v bat >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"**/bat"
 	zinit light sharkdp/bat
 fi
 
 # ripgrep — fast grep alternative.
-if ((!$+commands[rg])); then
+if ! command -v rg >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"**/rg"
 	zinit light BurntSushi/ripgrep
 fi
 
 # direnv — per-directory env vars. Hook configured in rc/tools.zsh.
-# direnv ships a plain binary (not an archive), so extract"!" suppresses the
-# "didn't recognize archive type" error zinit would otherwise emit.
-if ((!$+commands[direnv])); then
+if ! command -v direnv >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" extract"!" mv"direnv* -> direnv" pick"direnv"
 	zinit light direnv/direnv
 fi
 
 # fnm — fast Node version manager.
-if ((!$+commands[fnm])); then
+if ! command -v fnm >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"fnm"
 	zinit light Schniz/fnm
 fi
 
 # cloc — count lines of code. Perl script, no compilation needed.
-if ((!$+commands[cloc])); then
+if ! command -v cloc >/dev/null 2>&1; then
 	zinit ice as"program" pick"cloc"
 	zinit light AlDanial/cloc
 fi
 
 # rename — Perl-based file renaming (compatible with Ubuntu's rename).
-if ((!$+commands[rename])); then
+if ! command -v rename >/dev/null 2>&1; then
 	zinit ice as"program" pick"rename"
 	zinit light subogero/rename
 fi
@@ -144,7 +129,7 @@ zinit light zsh-users/zsh-autosuggestions
 
 # fzf-based tab completion UI (optional). Loads after compinit by virtue of wait'0'.
 # Enabled when setup-zinit creates the feature flag file.
-if [[ -f "${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled" ]]; then
+if [ -f "${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled" ]; then
 	zinit ice wait'0' lucid
 	zinit light Aloxaf/fzf-tab
 fi
@@ -155,8 +140,5 @@ zinit light hlissner/zsh-autopair
 
 # Syntax highlighting — must be last (wraps ZLE self-insert widget).
 # wait'0b' = second Turbo wave, after wait'0' plugins have settled.
-# zinit light zsh-users/zsh-syntax-highlighting
 zinit ice wait'0b' lucid
 zinit light zdharma-continuum/fast-syntax-highlighting
-# }}
-# }}

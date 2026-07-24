@@ -1,8 +1,5 @@
-# ========================================
-# ⚡ POWERLEVEL10K INSTANT PROMPT
-# ========================================
-# Must be at the top, before any other code
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+# POWERLEVEL10K INSTANT PROMPT
+if [ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
@@ -12,7 +9,9 @@ fi
 
 source_if_exists() {
   local file="$1"
-  [[ -f "$file" ]] && source "$file"
+  if [ -f "$file" ]; then
+    source "$file"
+  fi
 }
 
 # ========================================
@@ -26,23 +25,7 @@ source_if_exists "$ZDOTDIR/rc/zinit.zsh"
 source_if_exists "$ZDOTDIR/rc/tools.zsh"
 source_if_exists "$ZDOTDIR/rc/completion.zsh"
 
-# ========================================
-# 🎉 FINAL MESSAGES (after full load)
-# ========================================
-# Only if running in an interactive terminal and instant prompt has finished
-if [[ -t 1 ]] && { [[ -z "$P10K_INSTANT_PROMPT_ACTIVE" ]] || [[ "$P10K_INSTANT_PROMPT_ACTIVE" != "1" ]]; }; then
-  echo
-  echo -e "\e[32m✅ Zsh loaded successfully!\e[0m"
-  echo -e "\e[34m💡 Tip:\e[0m Use \e[1m'p10k configure'\e[0m to customize the theme"
-  echo -e "\e[33m🚀 Ready to code!\e[0m"
-  echo
+# Load p10k configuration
+if [ -f ~/.p10k.zsh ]; then
+  source ~/.p10k.zsh
 fi
-
-export PATH=$PATH:/usr/local/go/bin
-export GOPATH=/home/vagners/homebrew/go
-export PATH=$PATH:$GOPATH/bin
-
-source_if_exists "$HOME/.local/bin/env"
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
