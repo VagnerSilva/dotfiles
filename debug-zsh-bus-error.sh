@@ -24,7 +24,6 @@ log_dir="$state_dir/startup-$timestamp-$$"
 mkdir -p "$log_dir"
 
 trace_prefix="$log_dir/strace"
-xtrace_log="$log_dir/xtrace.log"
 metadata_log="$log_dir/metadata.txt"
 
 {
@@ -38,14 +37,9 @@ metadata_log="$log_dir/metadata.txt"
 printf 'Starting traced Zsh session. Reproduce the Bus Error, then run exit.\n'
 printf 'Logs: %s\n\n' "$log_dir"
 
-# XTRACEFD directs `zsh -x` output to xtrace.log. PS4 records the PID and
-# source location, allowing the command trace to be correlated with strace.*.
-export PS4='+%D{%Y-%m-%dT%H:%M:%S} pid=$$ %N:%i> '
-export XTRACEFD=3
-
 set +e
-strace -ff -tt -s 256 -o "$trace_prefix" -e trace=process,signal -- \
-  zsh -ilx 3>> "$xtrace_log"
+strace -ff -tt -s 256 -o "$trace_prefix" -e trace=process,signal,file -- \
+  zsh -il
 zsh_exit_code=$?
 set -e
 
@@ -54,12 +48,11 @@ printf '\nzsh_exit_code=%s\n' "$zsh_exit_code" >> "$metadata_log"
 printf '\n=== SIGBUS report ===\n'
 if grep -Hn -C 12 'SIGBUS' "$log_dir"/strace*; then
   printf '\nSIGBUS captured. The matching strace.<pid> file contains the process command.\n'
-  printf 'Use xtrace.log to see the last Zsh startup command for that PID.\n'
+  printf 'The same strace.<pid> file shows the executed process and loaded files.\n'
 else
   printf 'No SIGBUS was captured in this session. Keep this directory and retry if needed.\n'
 fi
 
 printf '\nArtifacts:\n'
 printf '  metadata: %s\n' "$metadata_log"
-printf '  Zsh trace: %s\n' "$xtrace_log"
 printf '  system traces: %s.*\n' "$trace_prefix"
