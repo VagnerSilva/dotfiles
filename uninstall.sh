@@ -60,41 +60,23 @@ remove_owned_link() {
   fi
 }
 
-remove_stowed_links_with_stow() {
-  if ! command -v stow >/dev/null 2>&1; then
-    warn "GNU Stow is unavailable; using the safe symlink fallback."
-    return 0
-  fi
-
-  if (
-    cd "$SCRIPT_DIR"
-    stow --target="$STOW_TARGET" --delete \
-      --ignore='^\.git$' \
-      --ignore='^setup-.*\.sh$' \
-      --ignore='^uninstall\.sh$' \
-      .
-  ); then
-    log "Removed Stow-managed dotfiles links."
-  else
-    warn "Stow could not remove every link; continuing with the safe symlink fallback."
-  fi
-}
-
-remove_stowed_links_fallback() {
+remove_stowed_links() {
   local source
   local relative_path
   local target
 
+  # Do not invoke `stow --delete`: it can wait on a missing or partial target
+  # layout. Remove only links that resolve inside this repository instead.
   while IFS= read -r -d '' source; do
     relative_path="${source#"$SCRIPT_DIR"/}"
     target="$STOW_TARGET/$relative_path"
     remove_owned_link "$target"
   done < <(
-    find "$SCRIPT_DIR" \
+    find "$SCRIPT_DIR" -mindepth 1 \
       -path "$SCRIPT_DIR/.git" -prune -o \
       -name 'setup-*.sh' -prune -o \
       -name 'uninstall.sh' -prune -o \
-      -type f -print0
+      \( -type f -o -type d \) -print0
   )
 }
 
@@ -115,7 +97,7 @@ remove_empty_directory() {
 }
 
 refresh_font_cache() {
-  if command -v fc-cache >/dev/null 2>&1; then
+  if [[ -d "$XDG_DATA_HOME/fonts" ]] && command -v fc-cache >/dev/null 2>&1; then
     fc-cache -f "$XDG_DATA_HOME/fonts" >/dev/null
   fi
 }
@@ -178,8 +160,7 @@ main() {
     return 0
   fi
 
-  remove_stowed_links_with_stow
-  remove_stowed_links_fallback
+  remove_stowed_links
 
   remove_directory "$ZINIT_HOME" "Zinit repository"
   remove_directory "$ZINIT_DATA_DIR" "Zinit plugins and managed binaries"
