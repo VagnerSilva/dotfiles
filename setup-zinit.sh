@@ -22,6 +22,7 @@ ZINIT_RC_FILE="$ZDOTDIR/rc/zinit.zsh"
 # - External tools are only reported here (user-managed install lifecycle).
 MANAGED_TOOLS=(fnm fzf starship fd bat rg direnv cloc rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
+FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
 
 log() {
   printf '[INFO] %s\n' "$1"
@@ -33,6 +34,26 @@ error() {
 
 warn() {
   printf '[WARN] %s\n' "$1"
+}
+
+confirm_step() {
+  local message="$1"
+  local answer=""
+
+  while true; do
+    read -r -p "$message [y/N]: " answer
+    case "$answer" in
+      y|Y|yes|YES)
+        return 0
+        ;;
+      n|N|no|NO|"")
+        return 1
+        ;;
+      *)
+        warn "Invalid answer. Use y or n."
+        ;;
+    esac
+  done
 }
 
 detect_package_manager() {
@@ -231,14 +252,34 @@ report_external_tool_status() {
   fi
 }
 
+configure_optional_fzf_tab() {
+  if confirm_step "Enable fzf-tab plugin (fuzzy tab-completion UI)?"; then
+    mkdir -p "$(dirname "$FZF_TAB_FLAG_FILE")"
+    : > "$FZF_TAB_FLAG_FILE"
+    log "fzf-tab enabled."
+  else
+    rm -f "$FZF_TAB_FLAG_FILE"
+    log "fzf-tab disabled."
+  fi
+}
+
+install_optional_plugins() {
+  if [ -f "$FZF_TAB_FLAG_FILE" ]; then
+    log "Installing optional plugin: fzf-tab"
+    ZDOTDIR="$ZDOTDIR" zsh -ic 'true' >/dev/null
+  fi
+}
+
 main() {
   ensure_dependencies
   require_command git
   verify_stow_layout
+  configure_optional_fzf_tab
   ensure_parent_directory
   clone_or_update_zinit
   verify_installation
   install_managed_tools
+  install_optional_plugins
   report_external_tool_status
 
   printf '\nNext step:\n'

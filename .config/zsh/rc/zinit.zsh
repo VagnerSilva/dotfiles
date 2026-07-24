@@ -142,9 +142,14 @@ zinit light zsh-users/zsh-completions
 zinit ice wait'0' lucid atload'!_zsh_autosuggest_start'
 zinit light zsh-users/zsh-autosuggestions
 
-# fzf-based tab completion UI. Loads after compinit by virtue of wait'0'.
-# zinit ice wait'0' lucid
-# zinit light Aloxaf/fzf-tab
+# fzf-based tab completion UI (optional). Loads after compinit by virtue of wait'0'.
+# Enabled when setup-zinit creates the feature flag file.
+FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
+if [[ -f "$FZF_TAB_FLAG_FILE" ]]; then
+	zinit ice wait'0' lucid
+	zinit light Aloxaf/fzf-tab
+fi
+unset FZF_TAB_FLAG_FILE
 
 # Auto-pair brackets, quotes, etc. — inserts closing ), ], }, ", ' automatically.
 zinit ice wait'0' lucid
