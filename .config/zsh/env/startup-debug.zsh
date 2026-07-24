@@ -10,7 +10,7 @@ if [[ $- == *i* ]] && [[ -f "$_zsh_debug_flag" ]] && [[ -z "${_ZSH_STARTUP_DEBUG
 	typeset -g _ZSH_STARTUP_DEBUG_LOG="$_ZSH_STARTUP_DEBUG_DIR/startup-${$}-${RANDOM}.xtrace"
 
 	exec {ZSH_STARTUP_DEBUG_FD}>> "$_ZSH_STARTUP_DEBUG_LOG"
-	XTRACEFD=$ZSH_STARTUP_DEBUG_FD
+	typeset -gi XTRACEFD=$ZSH_STARTUP_DEBUG_FD
 	PS4='+%D{%Y-%m-%dT%H:%M:%S} pid=$$ %N:%i> '
 	print -r -- "startup pid=$$ ppid=$PPID zdotdir=${ZDOTDIR:-$HOME/.config/zsh}" >&$ZSH_STARTUP_DEBUG_FD
 	setopt xtrace
