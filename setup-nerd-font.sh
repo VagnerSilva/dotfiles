@@ -149,18 +149,33 @@ import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-data = json.loads(path.read_text())
+text = path.read_text()
 font = os.environ["FONT_FAMILY"]
 mode = os.environ["JSON_MODE"]
-if mode == "windows-terminal":
+
+if mode == "vscode":
+    key = '"terminal.integrated.fontFamily"'
+    value = json.dumps(font, ensure_ascii=False)
+    import re
+    pattern = re.compile(r'("terminal\.integrated\.fontFamily"\s*:\s*)("(?:\\.|[^"\\])*")')
+    if pattern.search(text):
+        text = pattern.sub(r'\g<1>' + value, text, count=1)
+    else:
+        closing = text.rfind("}")
+        if closing < 0:
+            raise ValueError("settings file has no root object")
+        body = text[:closing].rstrip()
+        separator = "" if body.endswith(",") else ","
+        text = body + separator + '\n    ' + key + ': ' + value + '\n' + text[closing:]
+    path.write_text(text)
+else:
+    data = json.loads(text)
     profiles = data.setdefault("profiles", {})
     defaults = profiles.setdefault("defaults", {})
     defaults.setdefault("font", {})["face"] = font
     for profile in profiles.get("list", []):
         profile.setdefault("font", {})["face"] = font
-elif mode == "vscode":
-    data["terminal.integrated.fontFamily"] = font
-path.write_text(json.dumps(data, indent=4, ensure_ascii=False) + "\n")
+    path.write_text(json.dumps(data, indent=4, ensure_ascii=False) + "\n")
 PY
   then
     warn "Could not update terminal JSON configuration: $file"
