@@ -20,8 +20,8 @@ source_if_exists() {
 source_if_exists "$ZDOTDIR/rc/options.zsh"
 source_if_exists "$ZDOTDIR/rc/aliases.zsh"
 source_if_exists "$ZDOTDIR/rc/history.zsh"
-source_if_exists "$ZDOTDIR/rc/p10k.zsh"
 source_if_exists "$ZDOTDIR/rc/zinit.zsh"
+source_if_exists "$ZDOTDIR/rc/p10k.zsh"
 source_if_exists "$ZDOTDIR/rc/completion.zsh"
 source_if_exists "$ZDOTDIR/rc/tools.zsh"
 
