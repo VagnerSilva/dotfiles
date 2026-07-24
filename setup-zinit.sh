@@ -3,13 +3,7 @@
 set -euo pipefail
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-# For setup scripts, prefer HOME-scoped ZDOTDIR. Ignore inherited values that
-# point outside HOME (common in sandbox or containerized validation).
-if [ -n "${ZDOTDIR:-}" ] && [ "$ZDOTDIR" != "$HOME" ] && [[ "$ZDOTDIR" == "$HOME"/* ]]; then
-  ZDOTDIR="$ZDOTDIR"
-else
-  ZDOTDIR="$XDG_CONFIG_HOME/zsh"
-fi
+ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
 ZINIT_HOME="${ZINIT_HOME:-$HOME/.local/repos/zinit}"
 ZINIT_REPO_URL="https://github.com/zdharma-continuum/zinit.git"
@@ -83,11 +77,6 @@ require_command() {
 
 is_command_available() {
   command -v "$1" >/dev/null 2>&1
-}
-
-is_zsh_command_available() {
-  local cmd="$1"
-  ZDOTDIR="$ZDOTDIR" zsh -ic "command -v $cmd >/dev/null 2>&1" >/dev/null 2>&1
 }
 
 install_dependencies() {
@@ -201,37 +190,7 @@ verify_installation() {
 }
 
 install_managed_tools() {
-  local tool
-  local missing_tools=()
-
-  for tool in "${MANAGED_TOOLS[@]}"; do
-    if ! is_zsh_command_available "$tool"; then
-      missing_tools+=("$tool")
-    fi
-  done
-
-  if [ "${#missing_tools[@]}" -eq 0 ]; then
-    log "Managed tools already available: ${MANAGED_TOOLS[*]}"
-    return 0
-  fi
-
-  log "Missing managed tools: ${missing_tools[*]}"
-  log "Triggering zinit load once to install missing managed tools..."
-  ZDOTDIR="$ZDOTDIR" zsh -ic 'true' >/dev/null
-
-  missing_tools=()
-  for tool in "${MANAGED_TOOLS[@]}"; do
-    if ! is_zsh_command_available "$tool"; then
-      missing_tools+=("$tool")
-    fi
-  done
-
-  if [ "${#missing_tools[@]}" -eq 0 ]; then
-    log "Managed tools installed successfully."
-  else
-    warn "Some managed tools are still missing: ${missing_tools[*]}"
-    warn "Run 'zsh -ic true' and check zinit logs if needed."
-  fi
+  log "Managed tools will be installed via zinit on first shell load."
 }
 
 report_external_tool_status() {
