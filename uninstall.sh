@@ -10,6 +10,8 @@ XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 ZINIT_HOME="${ZINIT_HOME:-$HOME/.local/repos/zinit}"
 ZINIT_DATA_DIR="${ZINIT_DATA_DIR:-$XDG_DATA_HOME/zinit}"
+STARSHIP_PLUGIN_DIR="$ZINIT_DATA_DIR/plugins/starship---starship"
+STARSHIP_CACHE_FILE="$XDG_CACHE_HOME/zsh/starship_init.zsh"
 FONT_NAME="${NERD_FONT_NAME:-Meslo}"
 FONT_DIR="$XDG_DATA_HOME/fonts/NerdFonts/$FONT_NAME"
 ASSUME_YES=false
@@ -96,6 +98,15 @@ remove_empty_directory() {
   rmdir "$path" 2>/dev/null || true
 }
 
+remove_starship() {
+  remove_directory "$STARSHIP_PLUGIN_DIR" "Starship Zinit plugin"
+
+  if [[ -f "$STARSHIP_CACHE_FILE" ]]; then
+    rm -f -- "$STARSHIP_CACHE_FILE"
+    log "Removed Starship shell cache: $STARSHIP_CACHE_FILE"
+  fi
+}
+
 refresh_font_cache() {
   if [[ -d "$XDG_DATA_HOME/fonts" ]] && command -v fc-cache >/dev/null 2>&1; then
     fc-cache -f "$XDG_DATA_HOME/fonts" >/dev/null
@@ -161,6 +172,7 @@ main() {
   fi
 
   remove_stowed_links
+  remove_starship
 
   remove_directory "$ZINIT_HOME" "Zinit repository"
   remove_directory "$ZINIT_DATA_DIR" "Zinit plugins and managed binaries"
