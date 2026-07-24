@@ -31,7 +31,7 @@ confirm_step() {
         return 1
         ;;
       *)
-        warn "Resposta invalida. Use y ou n."
+        warn "Invalid answer. Use y or n."
         ;;
     esac
   done
@@ -89,7 +89,7 @@ install_packages() {
       sudo apk add "${packages[@]}"
       ;;
     *)
-      error "Gerenciador de pacotes nao suportado: $pm"
+      error "Unsupported package manager: $pm"
       return 1
       ;;
   esac
@@ -138,11 +138,11 @@ ensure_zsh_in_shells() {
   zsh_path="$(command -v zsh)"
 
   if grep -Fxq "$zsh_path" /etc/shells; then
-    log "zsh ja esta listado em /etc/shells."
+    log "zsh is already listed in /etc/shells."
     return 0
   fi
 
-  log "Adicionando $zsh_path em /etc/shells"
+  log "Adding $zsh_path to /etc/shells"
   echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
 }
 
@@ -151,14 +151,14 @@ set_default_shell_to_zsh() {
   zsh_path="$(command -v zsh)"
 
   if [[ "$SHELL" == "$zsh_path" ]]; then
-    log "zsh ja e o shell padrao desta sessao ($SHELL)."
+    log "zsh is already the default shell for this session ($SHELL)."
     return 0
   fi
 
   ensure_zsh_in_shells
   chsh -s "$zsh_path"
-  log "Shell padrao alterado para $zsh_path."
-  log "Abra uma nova sessao para aplicar completamente."
+  log "Default shell changed to $zsh_path."
+  log "Open a new session for full effect."
 }
 
 backup_current_zshrc() {
@@ -185,53 +185,53 @@ apply_stow_layout() {
 }
 
 print_summary() {
-  printf '\nResumo:\n'
+  printf '\nSummary:\n'
   if is_zsh_installed; then
-    printf ' - zsh instalado: sim (%s)\n' "$(command -v zsh)"
+    printf ' - zsh installed: yes (%s)\n' "$(command -v zsh)"
   else
-    printf ' - zsh instalado: nao\n'
+    printf ' - zsh installed: no\n'
   fi
 
   if is_command_available stow; then
-    printf ' - stow instalado: sim (%s)\n' "$(command -v stow)"
+    printf ' - stow installed: yes (%s)\n' "$(command -v stow)"
   else
-    printf ' - stow instalado: nao\n'
+    printf ' - stow installed: no\n'
   fi
 
-  printf ' - shell atual (variavel SHELL): %s\n' "$SHELL"
-  printf ' - destino de symlink: %s\n' "$STOW_TARGET"
+  printf ' - current shell (SHELL): %s\n' "$SHELL"
+  printf ' - symlink target: %s\n' "$STOW_TARGET"
 }
 
 main() {
-  log "Script de instalacao e configuracao do zsh"
+  log "zsh installation and configuration script"
   print_summary
 
-  if confirm_step "Deseja instalar o zsh (se necessario)?"; then
+  if confirm_step "Install zsh (if needed)?"; then
     ensure_zsh_installed
   else
-    log "Etapa de instalacao ignorada."
+    log "Skipped zsh installation step."
   fi
 
-  if confirm_step "Deseja instalar o stow (se necessario)?"; then
+  if confirm_step "Install stow (if needed)?"; then
     ensure_stow_installed
   else
-    log "Etapa de instalacao do stow ignorada."
+    log "Skipped stow installation step."
   fi
 
-  if confirm_step "Deseja definir o zsh como shell padrao?"; then
+  if confirm_step "Set zsh as default shell?"; then
     set_default_shell_to_zsh
   else
-    log "Etapa de shell padrao ignorada."
+    log "Skipped default shell step."
   fi
 
-  if confirm_step "Deseja aplicar os dotfiles com stow?"; then
+  if confirm_step "Apply dotfiles with stow?"; then
     apply_stow_layout
   else
-    log "Etapa de aplicacao do stow ignorada."
+    log "Skipped stow apply step."
   fi
 
   print_summary
-  log "Concluido."
+  log "Done."
 }
 
 main "$@"

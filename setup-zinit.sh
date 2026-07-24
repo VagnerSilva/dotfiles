@@ -16,12 +16,23 @@ ZINIT_REPO_URL="https://github.com/zdharma-continuum/zinit.git"
 ZINIT_ENTRYPOINT="$ZINIT_HOME/zinit.zsh"
 ZINIT_RC_FILE="$ZDOTDIR/rc/zinit.zsh"
 
+# Installation policy:
+# - Core dependencies are installed by package manager.
+# - Managed tools are installed via zinit fallback rules in rc/zinit.zsh.
+# - External tools are only reported here (user-managed install lifecycle).
+MANAGED_TOOLS=(fnm fzf starship fd bat rg direnv cloc rename)
+EXTERNAL_TOOLS=(mise broot qlty sdk)
+
 log() {
   printf '[INFO] %s\n' "$1"
 }
 
 error() {
   printf '[ERROR] %s\n' "$1" >&2
+}
+
+warn() {
+  printf '[WARN] %s\n' "$1"
 }
 
 detect_package_manager() {
@@ -45,9 +56,18 @@ detect_package_manager() {
 require_command() {
   local cmd="$1"
   if ! command -v "$cmd" >/dev/null 2>&1; then
-    error "Comando obrigatorio nao encontrado: $cmd"
+    error "Required command not found: $cmd"
     return 1
   fi
+}
+
+is_command_available() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+is_zsh_command_available() {
+  local cmd="$1"
+  ZDOTDIR="$ZDOTDIR" zsh -ic "command -v $cmd >/dev/null 2>&1" >/dev/null 2>&1
 }
 
 install_dependencies() {
@@ -55,12 +75,12 @@ install_dependencies() {
   pm="$(detect_package_manager)"
 
   if [ -z "$pm" ]; then
-    error "Nao foi possivel detectar o gerenciador de pacotes automaticamente."
-    error "Instale manualmente: git zsh curl tar gzip unzip xz"
+    error "Could not detect package manager automatically."
+    error "Install manually: git zsh curl tar gzip unzip xz"
     return 1
   fi
 
-  log "Gerenciador detectado: $pm"
+  log "Detected package manager: $pm"
 
   case "$pm" in
     apt)
@@ -83,7 +103,7 @@ install_dependencies() {
       sudo apk add git zsh curl tar gzip unzip xz
       ;;
     *)
-      error "Gerenciador de pacotes nao suportado: $pm"
+      error "Unsupported package manager: $pm"
       return 1
       ;;
   esac
@@ -104,23 +124,23 @@ ensure_dependencies() {
   done
 
   if [ "${#missing[@]}" -eq 0 ]; then
-    log "Dependencias do zinit ja estao instaladas."
+    log "zinit dependencies are already installed."
     return 0
   fi
 
-  log "Dependencias ausentes: ${missing[*]}"
+  log "Missing dependencies: ${missing[*]}"
   install_dependencies
 }
 
 verify_stow_layout() {
   if [ -f "$ZINIT_RC_FILE" ]; then
-    log "Arquivo de configuracao encontrado em $ZINIT_RC_FILE"
+    log "Configuration file found at $ZINIT_RC_FILE"
     return 0
   fi
 
-  error "Arquivo de configuracao nao encontrado: $ZINIT_RC_FILE"
-  error "Aplique seu pacote stow de zsh antes de usar o zinit no shell."
-  error "Exemplo: stow zsh"
+  error "Configuration file not found: $ZINIT_RC_FILE"
+  error "Apply your zsh stow package before using zinit in shell startup."
+  error "Example: stow zsh"
   return 1
 }
 
@@ -129,35 +149,86 @@ ensure_parent_directory() {
   parent_dir="$(dirname "$ZINIT_HOME")"
 
   if [ ! -d "$parent_dir" ]; then
-    log "Criando diretorio pai: $parent_dir"
+    log "Creating parent directory: $parent_dir"
     mkdir -p "$parent_dir"
   fi
 }
 
 clone_or_update_zinit() {
   if [ -d "$ZINIT_HOME/.git" ]; then
-    log "Repositorio zinit ja existe em $ZINIT_HOME. Atualizando..."
+    log "zinit repository already exists at $ZINIT_HOME. Updating..."
     git -C "$ZINIT_HOME" pull --ff-only
     return 0
   fi
 
   if [ -d "$ZINIT_HOME" ] && [ ! -d "$ZINIT_HOME/.git" ]; then
-    error "Diretorio $ZINIT_HOME existe, mas nao e um repositorio git."
-    error "Remova ou renomeie esse diretorio e execute novamente."
+    error "Directory $ZINIT_HOME exists, but is not a git repository."
+    error "Remove or rename this directory and run again."
     return 1
   fi
 
-  log "Clonando zinit em $ZINIT_HOME"
+  log "Cloning zinit into $ZINIT_HOME"
   git clone "$ZINIT_REPO_URL" "$ZINIT_HOME"
 }
 
 verify_installation() {
   if [ ! -f "$ZINIT_ENTRYPOINT" ]; then
-    error "Instalacao incompleta: arquivo nao encontrado em $ZINIT_ENTRYPOINT"
+    error "Incomplete installation: file not found at $ZINIT_ENTRYPOINT"
     return 1
   fi
 
-  log "Zinit pronto em $ZINIT_HOME"
+  log "zinit ready at $ZINIT_HOME"
+}
+
+install_managed_tools() {
+  local tool
+  local missing_tools=()
+
+  for tool in "${MANAGED_TOOLS[@]}"; do
+    if ! is_zsh_command_available "$tool"; then
+      missing_tools+=("$tool")
+    fi
+  done
+
+  if [ "${#missing_tools[@]}" -eq 0 ]; then
+    log "Managed tools already available: ${MANAGED_TOOLS[*]}"
+    return 0
+  fi
+
+  log "Missing managed tools: ${missing_tools[*]}"
+  log "Triggering zinit load once to install missing managed tools..."
+  ZDOTDIR="$ZDOTDIR" zsh -ic 'true' >/dev/null
+
+  missing_tools=()
+  for tool in "${MANAGED_TOOLS[@]}"; do
+    if ! is_zsh_command_available "$tool"; then
+      missing_tools+=("$tool")
+    fi
+  done
+
+  if [ "${#missing_tools[@]}" -eq 0 ]; then
+    log "Managed tools installed successfully."
+  else
+    warn "Some managed tools are still missing: ${missing_tools[*]}"
+    warn "Run 'zsh -ic true' and check zinit logs if needed."
+  fi
+}
+
+report_external_tool_status() {
+  local tool
+  local missing_tools=()
+
+  for tool in "${EXTERNAL_TOOLS[@]}"; do
+    if ! is_command_available "$tool"; then
+      missing_tools+=("$tool")
+    fi
+  done
+
+  if [ "${#missing_tools[@]}" -eq 0 ]; then
+    log "External tools found: ${EXTERNAL_TOOLS[*]}"
+  else
+    warn "External tools not installed by this script: ${missing_tools[*]}"
+  fi
 }
 
 main() {
@@ -167,9 +238,11 @@ main() {
   ensure_parent_directory
   clone_or_update_zinit
   verify_installation
+  install_managed_tools
+  report_external_tool_status
 
-  printf '\nProximo passo:\n'
-  printf ' - Abra um novo shell zsh para carregar %s\n' "$ZINIT_RC_FILE"
+  printf '\nNext step:\n'
+  printf ' - Open a new zsh shell to load %s\n' "$ZINIT_RC_FILE"
 }
 
 main "$@"
