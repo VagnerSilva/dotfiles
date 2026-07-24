@@ -7,14 +7,14 @@ SETUP_ZSH="$SCRIPT_DIR/setup-zsh.sh"
 SETUP_ZINIT="$SCRIPT_DIR/setup-zinit.sh"
 SETUP_NERD_FONT="$SCRIPT_DIR/setup-nerd-font.sh"
 
-if [[ -t 1 ]]; then
+# Color codes (disabled if not interactive terminal)
+C_RESET=''
+C_TITLE=''
+C_STEP=''
+if [[ -t 1 ]] 2>/dev/null; then
   C_RESET='\033[0m'
   C_TITLE='\033[1;36m'
   C_STEP='\033[1;34m'
-else
-  C_RESET=''
-  C_TITLE=''
-  C_STEP=''
 fi
 
 log() {

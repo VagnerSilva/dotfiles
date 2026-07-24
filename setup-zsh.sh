@@ -5,14 +5,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STOW_TARGET="$HOME"
 
-if [[ -t 1 ]]; then
+# Color codes (disabled if not interactive terminal)
+C_RESET=''
+C_TITLE=''
+C_STEP=''
+if [[ -t 1 ]] 2>/dev/null; then
   C_RESET='\033[0m'
   C_TITLE='\033[1;36m'
   C_STEP='\033[1;34m'
-else
-  C_RESET=''
-  C_TITLE=''
-  C_STEP=''
 fi
 
 log() {
@@ -45,23 +45,28 @@ confirm_step() {
     prompt_suffix='[Y/n]'
   fi
 
-  while true; do
-    read -r -p "$message $prompt_suffix: " answer
-    case "$answer" in
-      y|Y|yes|YES)
+  read -r -p "$message $prompt_suffix: " answer
+
+  case "$answer" in
+    y|Y|yes|YES)
+      return 0
+      ;;
+    n|N|no|NO)
+      return 1
+      ;;
+    "")
+      # Empty input uses default
+      if [[ "$default_answer" == "Y" ]]; then
         return 0
-        ;;
-      n|N|no|NO|"")
-        if [[ -z "$answer" && "$default_answer" == "Y" ]]; then
-          return 0
-        fi
+      else
         return 1
-        ;;
-      *)
-        warn "Invalid answer. Use y or n."
-        ;;
-    esac
-  done
+      fi
+      ;;
+    *)
+      warn "Invalid answer. Use y or n."
+      return 1
+      ;;
+  esac
 }
 
 is_command_available() {
