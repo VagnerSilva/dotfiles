@@ -114,31 +114,34 @@ zinit light urbainvaes/fzf-marks
 # }}
 
 # Shell plugins {{
-# ZLE/interactive plugins use Turbo mode (wait'0') — deferred to after the first
-# prompt is drawn so the shell feels instant. lucid suppresses the load banner.
-
 # Extra completions — eager: must populate fpath before compinit (rc/completion.zsh).
 # blockf: lets zinit control fpath injection timing.
 zinit ice blockf lucid
 zinit light zsh-users/zsh-completions
 
-# Inline suggestions (like fish). atload'!' activates the widget immediately on load.
-# Ref: https://github.com/zsh-users/zsh-autosuggestions
-zinit ice wait'0' lucid atload'!_zsh_autosuggest_start'
-zinit light zsh-users/zsh-autosuggestions
+# Load ZLE plugins synchronously after compinit. Loading them through Zinit's
+# Turbo scheduler creates background zsh jobs, which can intermittently end in
+# "Bus error" when several terminals start at the same time.
+#
+# This function is called by .zshrc after rc/completion.zsh. Keeping it here
+# lets Zinit continue managing the plugins while ensuring fzf-tab sees an
+# initialized completion system and syntax highlighting remains last.
+load_zle_plugins() {
+	# Inline suggestions (like fish). atload'!' activates the widget immediately.
+	zinit ice lucid atload'!_zsh_autosuggest_start'
+	zinit light zsh-users/zsh-autosuggestions
 
-# fzf-based tab completion UI (optional). Loads after compinit by virtue of wait'0'.
-# Enabled when setup-zinit creates the feature flag file.
-if [ -f "${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled" ]; then
-	zinit ice wait'0' lucid
-	zinit light Aloxaf/fzf-tab
-fi
+	# fzf-based tab completion UI (optional).
+	if [ -f "${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled" ]; then
+		zinit ice lucid
+		zinit light Aloxaf/fzf-tab
+	fi
 
-# Auto-pair brackets, quotes, etc. — inserts closing ), ], }, ", ' automatically.
-zinit ice wait'0' lucid
-zinit light hlissner/zsh-autopair
+	# Auto-pair brackets, quotes, etc. — inserts closing ), ], }, ", ' automatically.
+	zinit ice lucid
+	zinit light hlissner/zsh-autopair
 
-# Syntax highlighting — must be last (wraps ZLE self-insert widget).
-# wait'0b' = second Turbo wave, after wait'0' plugins have settled.
-zinit ice wait'0b' lucid
-zinit light zdharma-continuum/fast-syntax-highlighting
+	# Syntax highlighting must be last because it wraps ZLE's self-insert widget.
+	zinit ice lucid
+	zinit light zdharma-continuum/fast-syntax-highlighting
+}

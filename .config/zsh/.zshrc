@@ -22,8 +22,15 @@ source_if_exists "$ZDOTDIR/rc/aliases.zsh"
 source_if_exists "$ZDOTDIR/rc/history.zsh"
 source_if_exists "$ZDOTDIR/rc/p10k.zsh"
 source_if_exists "$ZDOTDIR/rc/zinit.zsh"
-source_if_exists "$ZDOTDIR/rc/tools.zsh"
 source_if_exists "$ZDOTDIR/rc/completion.zsh"
+source_if_exists "$ZDOTDIR/rc/tools.zsh"
+
+# ZLE plugins require an initialized completion system. Load them in the
+# foreground instead of Zinit Turbo jobs to keep concurrent terminal startup
+# reliable.
+if type load_zle_plugins >/dev/null 2>&1; then
+  load_zle_plugins
+fi
 
 # Load p10k configuration
 if [ -f ~/.p10k.zsh ]; then
