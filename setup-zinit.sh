@@ -10,6 +10,22 @@ ZINIT_REPO_URL="https://github.com/zdharma-continuum/zinit.git"
 ZINIT_ENTRYPOINT="$ZINIT_HOME/zinit.zsh"
 ZINIT_RC_FILE="$ZDOTDIR/rc/zinit.zsh"
 ZINIT_PLUGIN_DIR="${ZINIT_PLUGIN_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/zinit/plugins}"
+STARSHIP_CONFIG_FILE="$XDG_CONFIG_HOME/starship.toml"
+STARSHIP_PRESET_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/starship-preset"
+STARSHIP_PRESETS=(
+  bracketed-segments
+  catppuccin-powerline
+  gruvbox-rainbow
+  jetpack
+  nerd-font-symbols
+  no-empty-icons
+  no-nerd-font
+  no-runtime-versions
+  pastel-powerline
+  plain-text-symbols
+  pure-preset
+  tokyo-night
+)
 
 # Installation policy:
 # - Core dependencies are installed by package manager.
@@ -230,6 +246,39 @@ remove_compiled_plugin_cache() {
   log "Removed compiled Zinit plugin cache from $ZINIT_PLUGIN_DIR"
 }
 
+configure_starship_preset() {
+  local index
+  local preset
+
+  printf '\nAvailable Starship presets:\n'
+  for index in "${!STARSHIP_PRESETS[@]}"; do
+    printf ' %2d) %s\n' "$((index + 1))" "${STARSHIP_PRESETS[$index]}"
+  done
+
+  while true; do
+    printf 'Choose a Starship preset [1-%d]: ' "${#STARSHIP_PRESETS[@]}"
+    read -r index
+    if [[ "$index" =~ ^[0-9]+$ ]] && (( index >= 1 && index <= ${#STARSHIP_PRESETS[@]} )); then
+      preset="${STARSHIP_PRESETS[$((index - 1))]}"
+      break
+    fi
+    warn "Invalid selection. Choose a number from 1 to ${#STARSHIP_PRESETS[@]}."
+  done
+
+  mkdir -p "$(dirname "$STARSHIP_PRESET_FILE")"
+  printf '%s\n' "$preset" > "$STARSHIP_PRESET_FILE"
+  log "Starship preset selected: $preset"
+
+  if command -v starship >/dev/null 2>&1; then
+    mkdir -p "$(dirname "$STARSHIP_CONFIG_FILE")"
+    starship preset "$preset" --output "$STARSHIP_CONFIG_FILE" --force
+    rm -f -- "$STARSHIP_PRESET_FILE"
+    log "Starship configuration generated at $STARSHIP_CONFIG_FILE"
+  else
+    log "Starship is managed by zinit and will apply this preset on first shell load."
+  fi
+}
+
 install_managed_tools() {
   log "Managed tools will be installed via zinit on first shell load."
 }
@@ -280,10 +329,13 @@ main() {
 
   ensure_supported_architecture
 
-  print_step "Step 1/2 - optional plugins"
+  print_step "Step 1/3 - Starship preset"
+  configure_starship_preset
+
+  print_step "Step 2/3 - optional plugins"
   configure_optional_fzf_tab
 
-  print_step "Step 2/2 - zinit and managed tools"
+  print_step "Step 3/3 - zinit and managed tools"
   ensure_dependencies
   require_command git
   verify_stow_layout

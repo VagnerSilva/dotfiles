@@ -12,6 +12,7 @@ ZINIT_HOME="${ZINIT_HOME:-$HOME/.local/repos/zinit}"
 ZINIT_DATA_DIR="${ZINIT_DATA_DIR:-$XDG_DATA_HOME/zinit}"
 STARSHIP_PLUGIN_DIR="$ZINIT_DATA_DIR/plugins/starship---starship"
 STARSHIP_CACHE_FILE="$XDG_CACHE_HOME/zsh/starship_init.zsh"
+STARSHIP_PRESET_FILE="$XDG_STATE_HOME/zsh/starship-preset"
 FONT_NAME="${NERD_FONT_NAME:-Meslo}"
 FONT_DIR="$XDG_DATA_HOME/fonts/NerdFonts/$FONT_NAME"
 ASSUME_YES=false
@@ -104,6 +105,11 @@ remove_starship() {
   if [[ -f "$STARSHIP_CACHE_FILE" ]]; then
     rm -f -- "$STARSHIP_CACHE_FILE"
     log "Removed Starship shell cache: $STARSHIP_CACHE_FILE"
+  fi
+
+  if [[ -f "$STARSHIP_PRESET_FILE" ]]; then
+    rm -f -- "$STARSHIP_PRESET_FILE"
+    log "Removed pending Starship preset: $STARSHIP_PRESET_FILE"
   fi
 }
 

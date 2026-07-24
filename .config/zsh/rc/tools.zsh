@@ -63,6 +63,17 @@ if command -v mise >/dev/null 2>&1; then
 	unset _mise_cache
 fi
 
+# Apply a preset selected during setup-zinit when Starship was not yet available.
+_starship_preset_file="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/starship-preset"
+_starship_config_file="${XDG_CONFIG_HOME:-$HOME/.config}/starship.toml"
+if command -v starship >/dev/null 2>&1 && [ -s "$_starship_preset_file" ]; then
+	read -r _starship_preset < "$_starship_preset_file"
+	if starship preset "$_starship_preset" --output "$_starship_config_file" --force >/dev/null 2>&1; then
+		rm -f -- "$_starship_preset_file"
+	fi
+fi
+unset _starship_preset _starship_preset_file _starship_config_file
+
 # starship — cross-shell prompt.
 if command -v starship >/dev/null 2>&1; then
 	_starship_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/starship_init.zsh"
