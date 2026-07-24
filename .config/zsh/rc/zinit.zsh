@@ -28,6 +28,19 @@ if [ ! -f "$ZINIT_HOME/zinit.zsh" ]; then
 fi
 source "$ZINIT_HOME/zinit.zsh"
 
+# GitHub-release binaries are only managed on architectures for which their
+# upstream projects publish 64-bit assets. Zinit selects the matching release
+# asset from the running host; unsupported hosts keep using system packages.
+case "$(uname -m)" in
+	x86_64|amd64|aarch64|arm64)
+		ZINIT_MANAGED_RELEASES_SUPPORTED=1
+		;;
+	*)
+		ZINIT_MANAGED_RELEASES_SUPPORTED=0
+		print -u2 -- "zinit: skipping managed release binaries on unsupported architecture: $(uname -m)"
+		;;
+esac
+
 # Plugins {{
 
 # Binary tools {{
@@ -39,43 +52,43 @@ source "$ZINIT_HOME/zinit.zsh"
 #
 
 # fzf — fuzzy finder. Shell integration configured in rc/tools.zsh.
-if ! command -v fzf >/dev/null 2>&1; then
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v fzf >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"fzf"
 	zinit light junegunn/fzf
 fi
 
 # starship — cross-shell prompt. Init hook is sourced in rc/tools.zsh.
-if ! command -v starship >/dev/null 2>&1; then
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v starship >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"starship"
 	zinit light starship/starship
 fi
 
 # fd — fast alternative to find.
-if ! command -v fd >/dev/null 2>&1; then
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v fd >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"**/fd"
 	zinit light sharkdp/fd
 fi
 
 # bat — cat with syntax highlighting. Used as MANPAGER in rc/tools.zsh.
-if ! command -v bat >/dev/null 2>&1; then
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v bat >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"**/bat"
 	zinit light sharkdp/bat
 fi
 
 # ripgrep — fast grep alternative.
-if ! command -v rg >/dev/null 2>&1; then
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v rg >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"**/rg"
 	zinit light BurntSushi/ripgrep
 fi
 
 # direnv — per-directory env vars. Hook configured in rc/tools.zsh.
-if ! command -v direnv >/dev/null 2>&1; then
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v direnv >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" extract"!" mv"direnv* -> direnv" pick"direnv"
 	zinit light direnv/direnv
 fi
 
 # fnm — fast Node version manager.
-if ! command -v fnm >/dev/null 2>&1; then
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v fnm >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"fnm"
 	zinit light Schniz/fnm
 fi

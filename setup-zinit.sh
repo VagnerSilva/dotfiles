@@ -79,6 +79,37 @@ is_command_available() {
   command -v "$1" >/dev/null 2>&1
 }
 
+detect_host_architecture() {
+  case "$(uname -m)" in
+    x86_64|amd64) echo "x86_64" ;;
+    aarch64|arm64) echo "arm64" ;;
+    *) echo "" ;;
+  esac
+}
+
+ensure_supported_architecture() {
+  local host_os
+  local host_arch
+  local word_size
+
+  host_os="$(uname -s)"
+  host_arch="$(detect_host_architecture)"
+  word_size="$(getconf LONG_BIT 2>/dev/null || true)"
+
+  if [ "$host_os" != "Linux" ] && [ "$host_os" != "Darwin" ]; then
+    error "Unsupported operating system for managed release binaries: $host_os"
+    return 1
+  fi
+
+  if [ -z "$host_arch" ] || [ "$word_size" != "64" ]; then
+    error "Unsupported CPU architecture: $(uname -m) (${word_size:-unknown}-bit)"
+    error "Managed release binaries require a supported 64-bit x86_64 or arm64 host."
+    return 1
+  fi
+
+  log "Compatible host detected: ${host_os}/${host_arch} (${word_size}-bit)"
+}
+
 install_dependencies() {
   local pm
   pm="$(detect_package_manager)"
@@ -236,6 +267,8 @@ install_optional_plugins() {
 main() {
   print_title "Zinit setup"
   log "Interactive installation with optional plugin toggles."
+
+  ensure_supported_architecture
 
   print_step "Step 1/2 - optional plugins"
   configure_optional_fzf_tab
