@@ -177,7 +177,12 @@ apply_stow_layout() {
 
   (
     cd "$SCRIPT_DIR"
-    stow --target="$STOW_TARGET" --restow --ignore='^\.git$' --ignore='^setup-.*\.sh$' --ignore='^uninstall\.sh$' .
+    stow --target="$STOW_TARGET" --restow \
+      --ignore='^\.git$' \
+      --ignore='^setup-.*\.sh$' \
+      --ignore='^uninstall\.sh$' \
+      --ignore='^\.config/starship\.toml$' \
+      .
   )
 
   log "Dotfiles linked with stow to $STOW_TARGET"
