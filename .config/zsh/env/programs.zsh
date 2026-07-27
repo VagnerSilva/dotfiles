@@ -41,3 +41,8 @@ if [ -d "$XDG_DATA_HOME/npm/bin" ]; then
 fi
 # }}
 
+# User-installed CLI tools, including Starship's official installer target.
+if [ -d "$HOME/.local/bin" ]; then
+	export PATH="$HOME/.local/bin:$PATH"
+fi
+

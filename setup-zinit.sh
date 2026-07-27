@@ -32,7 +32,7 @@ STARSHIP_PRESETS=(
 # - Core dependencies are installed by package manager.
 # - Managed tools are installed via zinit fallback rules in rc/zinit.zsh.
 # - External tools are only reported here (user-managed install lifecycle).
-MANAGED_TOOLS=(fnm fzf starship fd bat rg direnv cloc rename)
+MANAGED_TOOLS=(fnm fzf fd bat rg direnv cloc rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
 FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
 
@@ -190,6 +190,36 @@ ensure_dependencies() {
   install_dependencies
 }
 
+install_starship() {
+  local installer
+  local starship_bin="$HOME/.local/bin/starship"
+
+  if command -v starship >/dev/null 2>&1 || [ -x "$starship_bin" ]; then
+    log "Starship is already installed."
+    return 0
+  fi
+
+  if ! confirm_step "Install the architecture-matched Starship binary?"; then
+    warn "Starship installation skipped; the shell will use its fallback prompt."
+    return 0
+  fi
+
+  installer="$(mktemp)"
+  trap 'rm -f "$installer"' RETURN
+  curl -fsSL https://starship.rs/install.sh -o "$installer"
+  sh "$installer" -y -b "$HOME/.local/bin"
+  rm -f "$installer"
+  trap - RETURN
+
+  if [ ! -x "$starship_bin" ]; then
+    error "Starship installation did not create $starship_bin"
+    return 1
+  fi
+
+  "$starship_bin" --version
+  log "Starship installed at $starship_bin"
+}
+
 verify_stow_layout() {
   if [ -f "$ZINIT_RC_FILE" ]; then
     log "Configuration file found at $ZINIT_RC_FILE"
@@ -341,13 +371,16 @@ main() {
 
   ensure_supported_architecture
 
-  print_step "Step 1/3 - Starship preset"
+  print_step "Step 1/4 - Starship binary"
+  install_starship
+
+  print_step "Step 2/4 - Starship preset"
   configure_starship_preset
 
-  print_step "Step 2/3 - optional plugins"
+  print_step "Step 3/4 - optional plugins"
   configure_optional_fzf_tab
 
-  print_step "Step 3/3 - zinit and managed tools"
+  print_step "Step 4/4 - zinit and managed tools"
   ensure_dependencies
   require_command git
   verify_stow_layout

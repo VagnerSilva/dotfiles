@@ -8,6 +8,7 @@ FONT_ZIP="${FONT_NAME}.zip"
 FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/${FONT_VERSION}/${FONT_ZIP}"
 
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 FONT_BASE_DIR="$XDG_DATA_HOME/fonts/NerdFonts"
 FONT_DIR="$FONT_BASE_DIR/$FONT_NAME"
 FONT_FAMILY="${NERD_FONT_FAMILY:-}"
@@ -204,7 +205,10 @@ configure_windows_terminals() {
     fi
     windows_font_file="$windows_font_dir/$(basename "$FONT_FILE")"
     mkdir -p "$windows_font_dir"
-    cp -- "$FONT_FILE" "$windows_font_file"
+    if ! cp -- "$FONT_FILE" "$windows_font_file"; then
+      warn "Could not copy the font to the Windows user fonts directory. Configure the terminal font manually in Windows."
+      return 0
+    fi
     powershell.exe -NoProfile -Command "New-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' -Name '${FONT_FAMILY} (TrueType)' -Value \"\$env:LOCALAPPDATA\\Microsoft\\Windows\\Fonts\\$(basename "$FONT_FILE")\" -PropertyType String -Force | Out-Null" >/dev/null 2>&1 || warn "Could not register font in Windows user profile."
     log "Installed Windows font for detected terminals: $FONT_FAMILY"
   fi

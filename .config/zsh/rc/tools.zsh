@@ -77,6 +77,9 @@ unset _starship_preset _starship_preset_file _starship_config_file
 # starship — cross-shell prompt. Do not execute a binary previously downloaded
 # by Zinit: a broken release asset can terminate the startup job with SIGBUS.
 _starship_bin="$(command -v starship 2>/dev/null || true)"
+if [ -z "$_starship_bin" ] && [ -x "$HOME/.local/bin/starship" ]; then
+	_starship_bin="$HOME/.local/bin/starship"
+fi
 case "$_starship_bin" in
 	"$HOME/.local/share/zinit/"*) _starship_bin="" ;;
 esac
