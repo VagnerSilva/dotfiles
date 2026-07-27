@@ -13,6 +13,7 @@ ZINIT_DATA_DIR="${ZINIT_DATA_DIR:-$XDG_DATA_HOME/zinit}"
 STARSHIP_PLUGIN_DIR="$ZINIT_DATA_DIR/plugins/starship---starship"
 STARSHIP_CACHE_FILE="$XDG_CACHE_HOME/zsh/starship_init.zsh"
 STARSHIP_PRESET_FILE="$XDG_STATE_HOME/zsh/starship-preset"
+STARSHIP_BINARY="$HOME/.local/bin/starship"
 FONT_NAME="${NERD_FONT_NAME:-Meslo}"
 FONT_DIR="$XDG_DATA_HOME/fonts/NerdFonts/$FONT_NAME"
 ASSUME_YES=false
@@ -102,6 +103,11 @@ remove_empty_directory() {
 remove_starship() {
   remove_directory "$STARSHIP_PLUGIN_DIR" "Starship Zinit plugin"
 
+  if [[ -f "$STARSHIP_BINARY" ]]; then
+    rm -f -- "$STARSHIP_BINARY"
+    log "Removed Starship binary: $STARSHIP_BINARY"
+  fi
+
   if [[ -f "$STARSHIP_CACHE_FILE" ]]; then
     rm -f -- "$STARSHIP_CACHE_FILE"
     log "Removed Starship shell cache: $STARSHIP_CACHE_FILE"
@@ -169,7 +175,7 @@ main() {
   parse_arguments "$@"
 
   printf '\n### Dotfiles uninstall ###\n'
-  warn "This removes Stow-managed links, Zinit, Zsh cache/state, and the $FONT_NAME Nerd Font."
+  warn "This removes Stow-managed links, Zinit, the managed Starship binary, Zsh cache/state, and the $FONT_NAME Nerd Font."
   warn "It does not uninstall system packages such as zsh, stow, git, or curl."
 
   if ! confirm "Continue with the uninstall?"; then
