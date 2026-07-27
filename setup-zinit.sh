@@ -207,6 +207,7 @@ install_starship() {
   installer="$(mktemp)"
   trap 'rm -f "$installer"' RETURN
   curl -fsSL https://starship.rs/install.sh -o "$installer"
+  mkdir -p "$(dirname "$starship_bin")"
   sh "$installer" -y -b "$HOME/.local/bin"
   rm -f "$installer"
   trap - RETURN
