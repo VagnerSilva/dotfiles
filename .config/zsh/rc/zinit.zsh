@@ -57,12 +57,6 @@ if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v fzf >/dev/null 
 	zinit light junegunn/fzf
 fi
 
-# starship — cross-shell prompt. Init hook is sourced in rc/tools.zsh.
-if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v starship >/dev/null 2>&1; then
-	zinit ice from"gh-r" as"program" pick"starship"
-	zinit light starship/starship
-fi
-
 # fd — fast alternative to find.
 if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v fd >/dev/null 2>&1; then
 	zinit ice from"gh-r" as"program" pick"**/fd"

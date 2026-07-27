@@ -74,17 +74,22 @@ if command -v starship >/dev/null 2>&1 && [ -s "$_starship_preset_file" ]; then
 fi
 unset _starship_preset _starship_preset_file _starship_config_file
 
-# starship — cross-shell prompt.
-if command -v starship >/dev/null 2>&1; then
+# starship — cross-shell prompt. Do not execute a binary previously downloaded
+# by Zinit: a broken release asset can terminate the startup job with SIGBUS.
+_starship_bin="$(command -v starship 2>/dev/null || true)"
+case "$_starship_bin" in
+	"$HOME/.local/share/zinit/"*) _starship_bin="" ;;
+esac
+if [ -n "$_starship_bin" ]; then
 	_starship_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/starship_init.zsh"
-	if [ ! -s "$_starship_cache" ]; then
+	if [ ! -s "$_starship_cache" ] || [ "$_starship_bin" -nt "$_starship_cache" ]; then
 		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
-		starship init zsh > "$_starship_cache"
+		"$_starship_bin" init zsh > "$_starship_cache"
 	fi
 	if [ -f "$_starship_cache" ]; then
 		source "$_starship_cache"
 	fi
-	unset _starship_cache
+	unset _starship_bin _starship_cache
 fi
 
 # bat / batman — interactive pager and man-page styling.

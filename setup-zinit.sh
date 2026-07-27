@@ -10,6 +10,7 @@ ZINIT_REPO_URL="https://github.com/zdharma-continuum/zinit.git"
 ZINIT_ENTRYPOINT="$ZINIT_HOME/zinit.zsh"
 ZINIT_RC_FILE="$ZDOTDIR/rc/zinit.zsh"
 ZINIT_PLUGIN_DIR="${ZINIT_PLUGIN_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/zinit/plugins}"
+ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 STARSHIP_CONFIG_FILE="$XDG_CONFIG_HOME/starship.toml"
 STARSHIP_PRESET_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/starship-preset"
 STARSHIP_PRESETS=(
@@ -246,6 +247,17 @@ remove_compiled_plugin_cache() {
   log "Removed compiled Zinit plugin cache from $ZINIT_PLUGIN_DIR"
 }
 
+remove_zinit_starship_fallback() {
+  local starship_plugin_dir="$ZINIT_PLUGIN_DIR/starship---starship"
+
+  if [ -d "$starship_plugin_dir" ]; then
+    rm -rf "$starship_plugin_dir"
+    log "Removed Zinit-managed Starship fallback: $starship_plugin_dir"
+  fi
+
+  rm -f "$ZSH_CACHE_DIR/starship_init.zsh"
+}
+
 configure_starship_preset() {
   local index
   local preset
@@ -343,6 +355,7 @@ main() {
   clone_or_update_zinit
   verify_installation
   remove_compiled_plugin_cache
+  remove_zinit_starship_fallback
   install_managed_tools
   install_optional_plugins
   report_external_tool_status
