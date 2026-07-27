@@ -11,6 +11,7 @@ XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 ZINIT_HOME="${ZINIT_HOME:-$HOME/.local/repos/zinit}"
 ZINIT_DATA_DIR="${ZINIT_DATA_DIR:-$XDG_DATA_HOME/zinit}"
 STARSHIP_PLUGIN_DIR="$ZINIT_DATA_DIR/plugins/starship---starship"
+LEGACY_STARSHIP_PLUGIN_DIR="$HOME/.local/shared/zinit/plugin/starship----startship"
 STARSHIP_CACHE_FILE="$XDG_CACHE_HOME/zsh/starship_init.zsh"
 STARSHIP_PRESET_FILE="$XDG_STATE_HOME/zsh/starship-preset"
 STARSHIP_BINARY="$HOME/.local/bin/starship"
@@ -102,6 +103,7 @@ remove_empty_directory() {
 
 remove_starship() {
   remove_directory "$STARSHIP_PLUGIN_DIR" "Starship Zinit plugin"
+  remove_directory "$LEGACY_STARSHIP_PLUGIN_DIR" "malformed legacy Starship plugin"
 
   if [[ -f "$STARSHIP_BINARY" ]]; then
     rm -f -- "$STARSHIP_BINARY"

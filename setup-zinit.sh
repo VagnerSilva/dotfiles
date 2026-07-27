@@ -279,10 +279,18 @@ remove_compiled_plugin_cache() {
 
 remove_zinit_starship_fallback() {
   local starship_plugin_dir="$ZINIT_PLUGIN_DIR/starship---starship"
+  local legacy_starship_plugin_dir="$HOME/.local/shared/zinit/plugin/starship----startship"
 
   if [ -d "$starship_plugin_dir" ]; then
     rm -rf "$starship_plugin_dir"
     log "Removed Zinit-managed Starship fallback: $starship_plugin_dir"
+  fi
+
+  # Remove the directory created by an older, misspelled fallback reference.
+  # The official installer target ($HOME/.local/bin/starship) is used instead.
+  if [ -d "$legacy_starship_plugin_dir" ]; then
+    rm -rf "$legacy_starship_plugin_dir"
+    log "Removed malformed legacy Starship plugin: $legacy_starship_plugin_dir"
   fi
 
   rm -f "$ZSH_CACHE_DIR/starship_init.zsh"
