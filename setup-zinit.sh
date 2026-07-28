@@ -80,6 +80,8 @@ detect_package_manager() {
     echo "zypper"
   elif command -v apk >/dev/null 2>&1; then
     echo "apk"
+  elif command -v pkg >/dev/null 2>&1; then
+    echo "pkg"
   else
     echo ""
   fi
@@ -159,6 +161,10 @@ install_dependencies() {
       ;;
     apk)
       sudo apk add git zsh curl tar gzip unzip xz
+      ;;
+    pkg)
+      # Termux: pkg installs without sudo and package names differ slightly
+      pkg install -y git zsh curl tar gzip unzip xz
       ;;
     *)
       error "Unsupported package manager: $pm"
