@@ -37,19 +37,26 @@
 # Set here rather than env/programs.zsh: only meaningful for interactive shells with a TTY.
 # (( $+commands[gpg] )) && export GPG_TTY=$TTY
 
-# fnm — Node version manager environment. A Zinit GitHub-release binary may
-# exist on Termux but be incompatible with Android's executable format.
-if command -v fnm >/dev/null 2>&1 && fnm --version >/dev/null 2>&1; then
+# fnm — Node version manager environment. Prefer the Termux-native executable
+# over an incompatible GitHub-release binary left by Zinit.
+_fnm_bin=""
+if { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
+	&& [ -x "${PREFIX:-/data/data/com.termux/files/usr}/bin/fnm" ]; then
+	_fnm_bin="${PREFIX:-/data/data/com.termux/files/usr}/bin/fnm"
+else
+	_fnm_bin="$(command -v fnm 2>/dev/null || true)"
+fi
+if [ -n "$_fnm_bin" ] && "$_fnm_bin" --version >/dev/null 2>&1; then
 	_fnm_env_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fnm_env.zsh"
-	if [ ! -s "$_fnm_env_cache" ] || [ "$(command -v fnm)" -nt "$_fnm_env_cache" ] 2>/dev/null; then
+	if [ ! -s "$_fnm_env_cache" ] || [ "$_fnm_bin" -nt "$_fnm_env_cache" ]; then
 		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
-		fnm env --shell zsh > "$_fnm_env_cache"
+		"$_fnm_bin" env --shell zsh > "$_fnm_env_cache"
 	fi
 	if [ -f "$_fnm_env_cache" ]; then
 		source "$_fnm_env_cache"
 	fi
-	unset _fnm_env_cache
 fi
+unset _fnm_bin _fnm_env_cache
 
 # mise — interactive shell integration for runtime shims and hooks.
 if command -v mise >/dev/null 2>&1; then
