@@ -68,7 +68,9 @@ confirm_step() {
 }
 
 detect_package_manager() {
-  if command -v apt-get >/dev/null 2>&1; then
+  if command -v pkg >/dev/null 2>&1; then
+    echo "pkg"
+  elif command -v apt-get >/dev/null 2>&1; then
     echo "apt"
   elif command -v dnf >/dev/null 2>&1; then
     echo "dnf"
@@ -141,6 +143,10 @@ install_dependencies() {
   log "Detected package manager: $pm"
 
   case "$pm" in
+    pkg)
+      pkg update -y
+      pkg install -y git zsh curl tar gzip unzip xz-utils
+      ;;
     apt)
       sudo apt-get update
       sudo apt-get install -y git zsh curl tar gzip unzip xz-utils
