@@ -115,6 +115,12 @@ ensure_supported_architecture() {
   host_os="$(uname -s)"
   host_arch="$(detect_host_architecture)"
   word_size="$(getconf LONG_BIT 2>/dev/null || true)"
+  if [ -z "$word_size" ]; then
+     case "$(uname -m)" in aarch64|arm64|x86_64|amd64)
+      word_size="64"
+      ;;
+      esac
+  fi
 
   if [ "$host_os" != "Linux" ] && [ "$host_os" != "Darwin" ]; then
     error "Unsupported operating system for managed release binaries: $host_os"
