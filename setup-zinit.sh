@@ -151,7 +151,7 @@ install_dependencies() {
   case "$pm" in
     pkg)
       pkg update -y
-      pkg install -y git zsh curl tar gzip unzip xz-utils
+      pkg install -y git zsh curl tar gzip unzip xz-utils direnv
       ;;
     apt)
       sudo apt-get update
