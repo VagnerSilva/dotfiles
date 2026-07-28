@@ -13,6 +13,8 @@ ZINIT_PLUGIN_DIR="${ZINIT_PLUGIN_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/zinit
 ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 STARSHIP_CONFIG_FILE="$XDG_CONFIG_HOME/starship.toml"
 STARSHIP_PRESET_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/starship-preset"
+SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
+SDKMAN_INSTALLER_URL="https://get.sdkman.io"
 STARSHIP_PRESETS=(
   bracketed-segments
   catppuccin-powerline
@@ -33,7 +35,10 @@ STARSHIP_PRESETS=(
 # - Managed tools are installed via zinit fallback rules in rc/zinit.zsh.
 # - External tools are only reported here (user-managed install lifecycle).
 MANAGED_TOOLS=(fnm fzf fd bat rg direnv cloc rename)
-TERMUX_MANAGED_PACKAGES=(fnm fzf fd bat ripgrep direnv cloc rename)
+# fnm and rename are not published by the Termux package repositories. Their
+# existing shell integration remains available if installed separately.
+TERMUX_MANAGED_PACKAGES=(fzf fd bat ripgrep direnv cloc)
+TERMUX_UNAVAILABLE_TOOLS=(fnm rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
 FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
 
@@ -251,6 +256,34 @@ install_starship() {
   log "Starship installed at $starship_bin"
 }
 
+install_sdkman() {
+  local installer
+
+  if [ -f "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then
+    log "SDKMAN is already installed at $SDKMAN_DIR."
+    return 0
+  fi
+
+  if ! confirm_step "Install SDKMAN?"; then
+    warn "SDKMAN installation skipped."
+    return 0
+  fi
+
+  installer="$(mktemp)"
+  trap 'rm -f "$installer"' RETURN
+  curl -fsSL "$SDKMAN_INSTALLER_URL" -o "$installer"
+  SDKMAN_DIR="$SDKMAN_DIR" bash "$installer"
+  rm -f "$installer"
+  trap - RETURN
+
+  if [ ! -f "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then
+    error "SDKMAN installation did not create $SDKMAN_DIR/bin/sdkman-init.sh"
+    return 1
+  fi
+
+  log "SDKMAN installed at $SDKMAN_DIR. Open a new Zsh session to use sdk."
+}
+
 verify_stow_layout() {
   if [ -f "$ZINIT_RC_FILE" ]; then
     log "Configuration file found at $ZINIT_RC_FILE"
@@ -370,6 +403,7 @@ install_managed_tools() {
         warn "Termux package unavailable or failed to install: $package"
       fi
     done
+    warn "Not installed on Termux because no native package is available: ${TERMUX_UNAVAILABLE_TOOLS[*]}"
     return 0
   fi
 
@@ -434,6 +468,7 @@ main() {
   print_step "Step 4/4 - zinit and managed tools"
   ensure_dependencies
   require_command git
+  install_sdkman
   verify_stow_layout
   ensure_parent_directory
   clone_or_update_zinit
