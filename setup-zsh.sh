@@ -40,8 +40,14 @@ is_command_available() {
   command -v "$1" >/dev/null 2>&1
 }
 
+is_termux() {
+  [[ -n "${TERMUX_VERSION:-}" ]]
+}
+
 detect_package_manager() {
-  if is_command_available apt-get; then
+  if is_termux; then
+    echo "pkg"
+  elif is_command_available apt-get; then
     echo "apt"
   elif is_command_available dnf; then
     echo "dnf"
@@ -68,6 +74,10 @@ install_packages() {
   local packages=("$@")
 
   case "$pm" in
+    pkg)
+      pkg update -y
+      pkg install -y "${packages[@]}"
+      ;;
     apt)
       sudo apt-get update
       sudo apt-get install -y "${packages[@]}"
@@ -146,6 +156,12 @@ ensure_zsh_in_shells() {
 }
 
 set_default_shell_to_zsh() {
+  if is_termux; then
+    log "Termux detected. Skipping chsh."
+    log "Start zsh manually with: zsh"
+    return 0
+  fi
+
   local zsh_path
   zsh_path="$(command -v zsh)"
 
@@ -156,6 +172,7 @@ set_default_shell_to_zsh() {
 
   ensure_zsh_in_shells
   chsh -s "$zsh_path"
+
   log "Default shell changed to $zsh_path."
   log "Open a new session for full effect."
 }
