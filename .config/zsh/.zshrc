@@ -9,6 +9,13 @@ source_if_exists() {
   fi
 }
 
+# Termux opens interactive Zsh as a non-login shell, so .zprofile does not
+# initialize an already-installed SDKMAN. Load it here once for Termux only.
+if { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
+  && [ "${_ZPROFILE_SOURCED:-}" != 1 ]; then
+  source_if_exists "$ZDOTDIR/env/sdkman.zsh"
+fi
+
 # ========================================
 # 🧱 RC MODULES
 # ========================================
