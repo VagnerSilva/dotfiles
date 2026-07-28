@@ -37,8 +37,9 @@
 # Set here rather than env/programs.zsh: only meaningful for interactive shells with a TTY.
 # (( $+commands[gpg] )) && export GPG_TTY=$TTY
 
-# fnm — Node version manager environment.
-if command -v fnm >/dev/null 2>&1; then
+# fnm — Node version manager environment. A Zinit GitHub-release binary may
+# exist on Termux but be incompatible with Android's executable format.
+if command -v fnm >/dev/null 2>&1 && fnm --version >/dev/null 2>&1; then
 	_fnm_env_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fnm_env.zsh"
 	if [ ! -s "$_fnm_env_cache" ] || [ "$(command -v fnm)" -nt "$_fnm_env_cache" ] 2>/dev/null; then
 		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
