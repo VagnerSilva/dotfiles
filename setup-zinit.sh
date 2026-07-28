@@ -35,10 +35,9 @@ STARSHIP_PRESETS=(
 # - Managed tools are installed via zinit fallback rules in rc/zinit.zsh.
 # - External tools are only reported here (user-managed install lifecycle).
 MANAGED_TOOLS=(fnm fzf fd bat rg direnv cloc rename)
-# fnm and rename are not published by the Termux package repositories. Their
-# existing shell integration remains available if installed separately.
+# rename is not published by the Termux package repositories.
 TERMUX_MANAGED_PACKAGES=(fzf fd bat ripgrep direnv cloc)
-TERMUX_UNAVAILABLE_TOOLS=(fnm rename)
+TERMUX_UNAVAILABLE_TOOLS=(rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
 FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
 
@@ -403,11 +402,41 @@ install_managed_tools() {
         warn "Termux package unavailable or failed to install: $package"
       fi
     done
+    install_termux_fnm
     warn "Not installed on Termux because no native package is available: ${TERMUX_UNAVAILABLE_TOOLS[*]}"
     return 0
   fi
 
   log "Managed tools will be installed via zinit on first shell load."
+}
+
+install_termux_fnm() {
+  local fnm_binary
+
+  for fnm_binary in "${PREFIX:-/data/data/com.termux/files/usr}/bin/fnm" "$HOME/.cargo/bin/fnm"; do
+    if [ -x "$fnm_binary" ]; then
+      log "fnm is already installed at $fnm_binary"
+      return 0
+    fi
+  done
+
+  if ! confirm_step "Build and install fnm with Cargo?"; then
+    warn "fnm installation skipped."
+    return 0
+  fi
+
+  if ! command -v cargo >/dev/null 2>&1; then
+    pkg install -y rust
+  fi
+  require_command cargo
+  cargo install fnm --locked
+
+  if [ ! -x "$HOME/.cargo/bin/fnm" ]; then
+    error "Cargo did not create $HOME/.cargo/bin/fnm"
+    return 1
+  fi
+
+  log "fnm installed at $HOME/.cargo/bin/fnm"
 }
 
 report_external_tool_status() {

@@ -43,6 +43,10 @@ _fnm_bin=""
 if { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
 	&& [ -x "${PREFIX:-/data/data/com.termux/files/usr}/bin/fnm" ]; then
 	_fnm_bin="${PREFIX:-/data/data/com.termux/files/usr}/bin/fnm"
+elif { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
+	&& [ -x "$HOME/.cargo/bin/fnm" ]; then
+	export PATH="$HOME/.cargo/bin:$PATH"
+	_fnm_bin="$HOME/.cargo/bin/fnm"
 else
 	_fnm_bin="$(command -v fnm 2>/dev/null || true)"
 fi
