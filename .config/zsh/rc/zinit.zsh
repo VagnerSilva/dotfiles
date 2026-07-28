@@ -28,18 +28,23 @@ if [ ! -f "$ZINIT_HOME/zinit.zsh" ]; then
 fi
 source "$ZINIT_HOME/zinit.zsh"
 
-# GitHub-release binaries are only managed on architectures for which their
-# upstream projects publish 64-bit assets. Zinit selects the matching release
-# asset from the running host; unsupported hosts keep using system packages.
-case "$(uname -m)" in
-	x86_64|amd64|aarch64|arm64)
-		ZINIT_MANAGED_RELEASES_SUPPORTED=1
-		;;
-	*)
-		ZINIT_MANAGED_RELEASES_SUPPORTED=0
-		print -u2 -- "zinit: skipping managed release binaries on unsupported architecture: $(uname -m)"
-		;;
-esac
+# GitHub-release binaries are only managed on desktop Linux/macOS hosts for
+# which upstream projects publish compatible 64-bit assets. Termux is Linux
+# from uname's perspective, but requires Android/Termux-native packages.
+if [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; then
+	ZINIT_MANAGED_RELEASES_SUPPORTED=0
+	print -u2 -- "zinit: skipping GitHub-release binaries on Termux; install them with pkg instead."
+else
+	case "$(uname -m)" in
+		x86_64|amd64|aarch64|arm64)
+			ZINIT_MANAGED_RELEASES_SUPPORTED=1
+			;;
+		*)
+			ZINIT_MANAGED_RELEASES_SUPPORTED=0
+			print -u2 -- "zinit: skipping managed release binaries on unsupported architecture: $(uname -m)"
+			;;
+	esac
+fi
 
 # Plugins {{
 
