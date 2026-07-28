@@ -33,7 +33,6 @@ source "$ZINIT_HOME/zinit.zsh"
 # from uname's perspective, but requires Android/Termux-native packages.
 if [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; then
 	ZINIT_MANAGED_RELEASES_SUPPORTED=0
-	print -u2 -- "zinit: skipping GitHub-release binaries on Termux; install them with pkg instead."
 else
 	case "$(uname -m)" in
 		x86_64|amd64|aarch64|arm64)

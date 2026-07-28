@@ -78,7 +78,10 @@ unset _starship_preset _starship_preset_file _starship_config_file
 # starship — cross-shell prompt. Prefer the official installer target and do
 # not execute Zinit-managed or legacy malformed plugin paths.
 _starship_bin=""
-if [ -x "$HOME/.local/bin/starship" ]; then
+if { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
+	&& [ -x "${PREFIX:-/data/data/com.termux/files/usr}/bin/starship" ]; then
+	_starship_bin="${PREFIX:-/data/data/com.termux/files/usr}/bin/starship"
+elif [ -x "$HOME/.local/bin/starship" ]; then
 	_starship_bin="$HOME/.local/bin/starship"
 else
 	_starship_bin="$(command -v starship 2>/dev/null || true)"

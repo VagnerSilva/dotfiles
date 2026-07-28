@@ -33,6 +33,7 @@ STARSHIP_PRESETS=(
 # - Managed tools are installed via zinit fallback rules in rc/zinit.zsh.
 # - External tools are only reported here (user-managed install lifecycle).
 MANAGED_TOOLS=(fnm fzf fd bat rg direnv cloc rename)
+TERMUX_MANAGED_PACKAGES=(fnm fzf fd bat ripgrep direnv cloc rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
 FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"
 
@@ -99,6 +100,10 @@ is_command_available() {
   command -v "$1" >/dev/null 2>&1
 }
 
+is_termux() {
+  [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]
+}
+
 detect_host_architecture() {
   case "$(uname -m)" in
     x86_64|amd64) echo "x86_64" ;;
@@ -111,6 +116,11 @@ ensure_supported_architecture() {
   local host_os
   local host_arch
   local word_size
+
+  if is_termux; then
+    log "Termux detected; native packages will be used instead of GitHub release binaries."
+    return 0
+  fi
 
   host_os="$(uname -s)"
   host_arch="$(detect_host_architecture)"
@@ -206,13 +216,21 @@ install_starship() {
   local installer
   local starship_bin="$HOME/.local/bin/starship"
 
-  if command -v starship >/dev/null 2>&1 || [ -x "$starship_bin" ]; then
+  if command -v starship >/dev/null 2>&1 || { ! is_termux && [ -x "$starship_bin" ]; }; then
     log "Starship is already installed."
     return 0
   fi
 
   if ! confirm_step "Install the architecture-matched Starship binary?"; then
     warn "Starship installation skipped; the shell will use its fallback prompt."
+    return 0
+  fi
+
+  if is_termux; then
+    pkg install -y starship
+    require_command starship
+    starship --version
+    log "Starship installed from the Termux package repository."
     return 0
   fi
 
@@ -343,6 +361,18 @@ configure_starship_preset() {
 }
 
 install_managed_tools() {
+  local package
+
+  if is_termux; then
+    log "Installing Termux-native managed tools."
+    for package in "${TERMUX_MANAGED_PACKAGES[@]}"; do
+      if ! pkg install -y "$package"; then
+        warn "Termux package unavailable or failed to install: $package"
+      fi
+    done
+    return 0
+  fi
+
   log "Managed tools will be installed via zinit on first shell load."
 }
 
