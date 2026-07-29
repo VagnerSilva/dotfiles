@@ -85,6 +85,12 @@ if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v direnv >/dev/nu
 	zinit light direnv/direnv
 fi
 
+# zoxide — smart directory jumper. Shell integration configured in rc/tools.zsh.
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v zoxide >/dev/null 2>&1; then
+	zinit ice from"gh-r" as"program" pick"zoxide"
+	zinit light ajeetdsouza/zoxide
+fi
+
 # fnm — fast Node version manager.
 if [ "${ZINIT_MANAGED_RELEASES_SUPPORTED:-1}" -eq 1 ] && ! command -v fnm >/dev/null 2>&1; then
     zinit ice from"gh-r" as"program" sbin"fnm" \

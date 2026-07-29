@@ -15,6 +15,7 @@
 #     - broot
 #     - fzf-marks
 #     - direnv
+#     - zoxide
 #
 #   ✔ Interactive-only environment variables
 #     (e.g. FZF_DEFAULT_COMMAND, GPG_TTY)
@@ -187,6 +188,12 @@ if command -v direnv >/dev/null 2>&1; then
 		source "$_direnv_cache"
 	fi
 	unset _direnv_cache
+fi
+
+# zoxide — smart cd alternative. Binary installed via zinit (see zinit.zsh).
+# Provides z and zi commands; source the generated shell hook after loading.
+if command -v zoxide >/dev/null 2>&1; then
+	eval "$(zoxide init zsh)"
 fi
 
 # cd-bookmark. Aliases in $ZDOTDIR/rc/aliases.zsh
