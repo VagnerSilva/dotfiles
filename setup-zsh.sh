@@ -197,6 +197,8 @@ apply_stow_layout() {
     stow --target="$STOW_TARGET" --restow \
       --ignore='^\.git$' \
       --ignore='^setup-.*\.sh$' \
+
+--ignore='^install\.sh$' \
       --ignore='^uninstall\.sh$' \
       --ignore='^\.config/starship\.toml$' \
       .
