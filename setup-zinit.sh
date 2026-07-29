@@ -67,12 +67,45 @@ print_step() {
 confirm_step() {
   local message="$1"
   local answer
-  printf '%s [y/N]: ' "$message"
-  read -r answer
-  case "$answer" in
-    y|Y|yes|YES) return 0 ;;
-    *) return 1 ;;
-  esac
+
+  while true; do
+    printf '%s [y/N]: ' "$message"
+    if ! read -r answer; then
+      warn "Input closed; using the safe default (No)."
+      return 1
+    fi
+    case "$answer" in
+      y|Y|yes|YES) return 0 ;;
+      ""|n|N|no|NO) return 1 ;;
+      *) warn "Invalid option. Enter y or n." ;;
+    esac
+  done
+}
+
+choose_number() {
+  local prompt="$1"
+  local min="$2"
+  local max="$3"
+  local answer
+
+  while true; do
+    printf '%s [%s-%s, 0 cancels]: ' "$prompt" "$min" "$max"
+    if ! read -r answer; then
+      log "Selection cancelled because input was closed."
+      return 1
+    fi
+    case "$answer" in
+      0|"") return 1 ;;
+      *[!0-9]*) warn "Invalid option. Enter a number from $min to $max." ;;
+      *)
+        if (( answer >= min && answer <= max )); then
+          REPLY="$answer"
+          return 0
+        fi
+        warn "Option out of range. Choose a number from $min to $max."
+        ;;
+    esac
+  done
 }
 
 detect_package_manager() {
@@ -371,15 +404,12 @@ configure_starship_preset() {
     printf ' %2d) %s\n' "$((index + 1))" "${STARSHIP_PRESETS[$index]}"
   done
 
-  while true; do
-    printf 'Choose a Starship preset [1-%d]: ' "${#STARSHIP_PRESETS[@]}"
-    read -r index
-    if [[ "$index" =~ ^[0-9]+$ ]] && (( index >= 1 && index <= ${#STARSHIP_PRESETS[@]} )); then
-      preset="${STARSHIP_PRESETS[$((index - 1))]}"
-      break
-    fi
-    warn "Invalid selection. Choose a number from 1 to ${#STARSHIP_PRESETS[@]}."
-  done
+  if ! choose_number "Choose a Starship preset" 1 "${#STARSHIP_PRESETS[@]}"; then
+    log "Starship preset selection cancelled."
+    return 0
+  fi
+  index="$REPLY"
+  preset="${STARSHIP_PRESETS[$((index - 1))]}"
 
   mkdir -p "$(dirname "$STARSHIP_PRESET_FILE")"
   printf '%s\n' "$preset" > "$STARSHIP_PRESET_FILE"

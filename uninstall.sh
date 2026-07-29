@@ -39,12 +39,18 @@ confirm() {
     return 0
   fi
 
-  printf '%s [y/N]: ' "$message"
-  read -r answer
-  case "$answer" in
-    y|Y|yes|YES) return 0 ;;
-    *) return 1 ;;
-  esac
+  while true; do
+    printf '%s [y/N]: ' "$message"
+    if ! read -r answer; then
+      warn "Input closed; using the safe default (No)."
+      return 1
+    fi
+    case "$answer" in
+      y|Y|yes|YES) return 0 ;;
+      ""|n|N|no|NO) return 1 ;;
+      *) warn "Invalid option. Enter y or n." ;;
+    esac
+  done
 }
 
 is_owned_link() {
