@@ -37,16 +37,13 @@
 # Set here rather than env/programs.zsh: only meaningful for interactive shells with a TTY.
 # (( $+commands[gpg] )) && export GPG_TTY=$TTY
 
-# fnm — Node version manager environment. Prefer the Termux-native executable
-# over an incompatible GitHub-release binary left by Zinit.
+# fnm — Node version manager environment. Termux installs fnm using its
+# official installer in the XDG data directory.
 _fnm_bin=""
 if { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
-	&& [ -x "${PREFIX:-/data/data/com.termux/files/usr}/bin/fnm" ]; then
-	_fnm_bin="${PREFIX:-/data/data/com.termux/files/usr}/bin/fnm"
-elif { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
-	&& [ -x "$HOME/.cargo/bin/fnm" ]; then
-	export PATH="$HOME/.cargo/bin:$PATH"
-	_fnm_bin="$HOME/.cargo/bin/fnm"
+	&& [ -x "${XDG_DATA_HOME:-$HOME/.local/share}/fnm/fnm" ]; then
+	_fnm_bin="${XDG_DATA_HOME:-$HOME/.local/share}/fnm/fnm"
+	export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/fnm:$PATH"
 else
 	_fnm_bin="$(command -v fnm 2>/dev/null || true)"
 fi

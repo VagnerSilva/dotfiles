@@ -15,6 +15,8 @@ STARSHIP_CONFIG_FILE="$XDG_CONFIG_HOME/starship.toml"
 STARSHIP_PRESET_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/starship-preset"
 SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
 SDKMAN_INSTALLER_URL="https://get.sdkman.io"
+FNM_INSTALL_DIR="${FNM_INSTALL_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}"
+FNM_INSTALLER_URL="https://fnm.vercel.app/install"
 STARSHIP_PRESETS=(
   bracketed-segments
   catppuccin-powerline
@@ -35,7 +37,8 @@ STARSHIP_PRESETS=(
 # - Managed tools are installed via zinit fallback rules in rc/zinit.zsh.
 # - External tools are only reported here (user-managed install lifecycle).
 MANAGED_TOOLS=(fnm fzf fd bat rg direnv cloc rename)
-# rename is not published by the Termux package repositories.
+# rename is not published by the Termux package repositories. fnm is installed
+# with its official installer, which selects the architecture-matched binary.
 TERMUX_MANAGED_PACKAGES=(fzf fd bat ripgrep direnv cloc)
 TERMUX_UNAVAILABLE_TOOLS=(rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
@@ -403,7 +406,7 @@ install_managed_tools() {
       fi
     done
     install_termux_fnm
-    warn "Not installed on Termux because no native package is available: ${TERMUX_UNAVAILABLE_TOOLS[*]}"
+    warn "Not installed on Termux because no compatible Android package is available: ${TERMUX_UNAVAILABLE_TOOLS[*]}"
     return 0
   fi
 
@@ -411,32 +414,33 @@ install_managed_tools() {
 }
 
 install_termux_fnm() {
-  local fnm_binary
+  local installer
+  local fnm_binary="$FNM_INSTALL_DIR/fnm"
 
-  for fnm_binary in "${PREFIX:-/data/data/com.termux/files/usr}/bin/fnm" "$HOME/.cargo/bin/fnm"; do
-    if [ -x "$fnm_binary" ]; then
-      log "fnm is already installed at $fnm_binary"
-      return 0
-    fi
-  done
+  if [ -x "$fnm_binary" ]; then
+    log "fnm is already installed at $fnm_binary"
+    return 0
+  fi
 
-  if ! confirm_step "Build and install fnm with Cargo?"; then
+  if ! confirm_step "Install fnm with its official installer?"; then
     warn "fnm installation skipped."
     return 0
   fi
 
-  if ! command -v cargo >/dev/null 2>&1; then
-    pkg install -y rust
-  fi
-  require_command cargo
-  cargo install fnm --locked
+  installer="$(mktemp)"
+  trap 'rm -f "$installer"' RETURN
+  curl -fsSL "$FNM_INSTALLER_URL" -o "$installer"
+  bash "$installer" --install-dir "$FNM_INSTALL_DIR" --skip-shell
+  rm -f "$installer"
+  trap - RETURN
 
-  if [ ! -x "$HOME/.cargo/bin/fnm" ]; then
-    error "Cargo did not create $HOME/.cargo/bin/fnm"
+  if [ ! -x "$fnm_binary" ]; then
+    error "fnm installation did not create $fnm_binary"
     return 1
   fi
 
-  log "fnm installed at $HOME/.cargo/bin/fnm"
+  "$fnm_binary" --version
+  log "fnm installed at $fnm_binary"
 }
 
 report_external_tool_status() {
