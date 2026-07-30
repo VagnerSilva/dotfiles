@@ -36,10 +36,10 @@ STARSHIP_PRESETS=(
 # - Core dependencies are installed by package manager.
 # - Managed tools are installed via zinit fallback rules in rc/zinit.zsh.
 # - External tools are only reported here (user-managed install lifecycle).
-MANAGED_TOOLS=(fnm fzf fd bat rg direnv cloc rename zoxide)
+MANAGED_TOOLS=(fnm fzf fd bat rg direnv cloc rename zoxide atuin)
 # rename is not published by the Termux package repositories. fnm is installed
 # with its official installer, which selects the architecture-matched binary.
-TERMUX_MANAGED_PACKAGES=(fzf fd bat ripgrep direnv cloc zoxide)
+TERMUX_MANAGED_PACKAGES=(fzf fd bat ripgrep direnv cloc zoxide atuin)
 TERMUX_UNAVAILABLE_TOOLS=(rename)
 EXTERNAL_TOOLS=(mise broot qlty sdk)
 FZF_TAB_FLAG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/features/fzf-tab.enabled"

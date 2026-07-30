@@ -16,6 +16,7 @@
 #     - fzf-marks
 #     - direnv
 #     - zoxide
+#     - atuin
 #
 #   ✔ Interactive-only environment variables
 #     (e.g. FZF_DEFAULT_COMMAND, GPG_TTY)
@@ -194,6 +195,20 @@ fi
 # Provides z and zi commands; source the generated shell hook after loading.
 if command -v zoxide >/dev/null 2>&1; then
 	eval "$(zoxide init zsh)"
+fi
+
+# atuin — shell history with SQLite backend and fuzzy search (Ctrl+R replacement).
+# Binary installed via zinit (see zinit.zsh). https://atuin.sh
+if command -v atuin >/dev/null 2>&1; then
+	_atuin_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/atuin_init.zsh"
+	if [ ! -s "$_atuin_cache" ] || [ "$(command -v atuin)" -nt "$_atuin_cache" ]; then
+		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+		atuin init zsh > "$_atuin_cache"
+	fi
+	if [ -f "$_atuin_cache" ]; then
+		source "$_atuin_cache"
+	fi
+	unset _atuin_cache
 fi
 
 # cd-bookmark. Aliases in $ZDOTDIR/rc/aliases.zsh
