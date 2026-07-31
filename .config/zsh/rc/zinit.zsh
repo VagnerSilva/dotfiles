@@ -98,6 +98,12 @@ if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v atuin >/dev/nul
 	zinit light atuinsh/atuin
 fi
 
+# gh — GitHub official CLI.
+if [ "$ZINIT_MANAGED_RELEASES_SUPPORTED" -eq 1 ] && ! command -v gh >/dev/null 2>&1; then
+	zinit ice from"gh-r" as"program" bpick"*(tar.gz|zip)" pick"**/gh"
+	zinit light cli/cli
+fi
+
 # fnm — fast Node version manager.
 if [ "${ZINIT_MANAGED_RELEASES_SUPPORTED:-1}" -eq 1 ] && ! command -v fnm >/dev/null 2>&1; then
     zinit ice from"gh-r" as"program" sbin"fnm" \

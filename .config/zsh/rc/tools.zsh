@@ -17,6 +17,7 @@
 #     - direnv
 #     - zoxide
 #     - atuin
+#     - gh
 #
 #   ✔ Interactive-only environment variables
 #     (e.g. FZF_DEFAULT_COMMAND, GPG_TTY)
