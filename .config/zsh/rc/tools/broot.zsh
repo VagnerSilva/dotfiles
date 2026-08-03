@@ -1,5 +1,6 @@
 # broot: directory navigation helper.
-if command -v broot >/dev/null 2>&1; then
+_broot_bin="$(command -v broot 2>/dev/null || true)"
+if [ -n "$_broot_bin" ] && [ -x "$_broot_bin" ]; then
 	br() {
 		local cmd cmd_file code
 		cmd_file=$(mktemp) || return 1

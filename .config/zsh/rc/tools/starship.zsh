@@ -10,6 +10,9 @@ fi
 unset _starship_preset _starship_preset_file _starship_config_file
 
 _starship_bin="$(command -v starship 2>/dev/null || true)"
+if [ -n "$_starship_bin" ] && [ ! -x "$_starship_bin" ]; then
+	_starship_bin=""
+fi
 case "$_starship_bin" in
 	"$HOME/.local/share/zinit/"*|"$HOME/.local/shared/zinit/"*) _starship_bin="" ;;
 esac

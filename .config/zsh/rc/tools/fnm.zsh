@@ -6,6 +6,9 @@ if { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/fi
 	export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/fnm:$PATH"
 else
 	_fnm_bin="$(command -v fnm 2>/dev/null || true)"
+	if [ -n "$_fnm_bin" ] && [ ! -x "$_fnm_bin" ]; then
+		_fnm_bin=""
+	fi
 fi
 if [ -n "$_fnm_bin" ] && "$_fnm_bin" --version >/dev/null 2>&1; then
 	_fnm_env_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fnm_env.zsh"

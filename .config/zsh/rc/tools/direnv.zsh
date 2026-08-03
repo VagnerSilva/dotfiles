@@ -1,5 +1,6 @@
 # direnv: per-directory environment hook.
-if command -v direnv >/dev/null 2>&1; then
+_direnv_bin="$(command -v direnv 2>/dev/null || true)"
+if [ -n "$_direnv_bin" ] && [ -x "$_direnv_bin" ]; then
 	_direnv_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
 	if [ ! -s "$_direnv_cache" ]; then
 		direnv hook zsh > "$_direnv_cache"

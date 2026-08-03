@@ -155,6 +155,7 @@ main() {
 	remove_owned_tools
 	remove_path "$STATE_DIR" "dotfiles ownership state"
 	printf '\nUninstall completed.\n'
+	warn "If this command was run from zsh, close this shell and open a new one so cached tool hooks are unloaded."
 }
 
 main "$@"
