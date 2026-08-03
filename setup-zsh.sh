@@ -203,6 +203,7 @@ apply_stow_layout() {
     cd "$SCRIPT_DIR"
     stow --target="$STOW_TARGET" --restow \
       --ignore='^\.git$' \
+      --ignore='^setup$' \
       --ignore='^setup-.*\.sh$' \
       --ignore='^install\.sh$' \
       --ignore='^uninstall\.sh$' \

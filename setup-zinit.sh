@@ -11,7 +11,10 @@ clone_or_update_zinit() {
 	mkdir -p "$(dirname "$ZINIT_HOME")"
 	if [ -d "$ZINIT_HOME/.git" ]; then git -C "$ZINIT_HOME" pull --ff-only
 	elif [ -e "$ZINIT_HOME" ]; then error "$ZINIT_HOME exists but is not a Git repository."; return 1
-	else git clone "$ZINIT_REPO_URL" "$ZINIT_HOME"; fi
+	else
+		git clone "$ZINIT_REPO_URL" "$ZINIT_HOME"
+		record_owned_path "$ZINIT_HOME"
+	fi
 }
 configure_optional_fzf_tab() {
 	[ -f "$FZF_TAB_FLAG_FILE" ] && { log "fzf-tab is enabled."; return 0; }

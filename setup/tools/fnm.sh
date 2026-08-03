@@ -9,4 +9,5 @@ installer="$(mktemp)"; trap 'rm -f "$installer"' EXIT
 curl -fsSL "$FNM_INSTALLER_URL" -o "$installer"
 mkdir -p "$FNM_INSTALL_DIR"; bash "$installer" --install-dir "$FNM_INSTALL_DIR" --skip-shell
 [ -x "$FNM_INSTALL_DIR/fnm" ] || { error "fnm installation did not create $FNM_INSTALL_DIR/fnm"; exit 1; }
+record_owned_path "$FNM_INSTALL_DIR"
 log "fnm installed at $FNM_INSTALL_DIR/fnm."

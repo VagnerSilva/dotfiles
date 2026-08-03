@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup/common.sh"
+
 FONT_NAME="${NERD_FONT_NAME:-Meslo}"
 FONT_VERSION="${NERD_FONT_VERSION:-v3.2.1}"
 FONT_ZIP="${FONT_NAME}.zip"
@@ -243,6 +245,7 @@ main() {
     log "Nerd Font already installed: $FONT_NAME"
   else
     download_and_extract_font
+    record_owned_path "$FONT_DIR"
     log "Nerd Font installation completed: $FONT_NAME"
   fi
 

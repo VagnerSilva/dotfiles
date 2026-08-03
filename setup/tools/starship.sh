@@ -6,10 +6,11 @@ STARSHIP_PRESET_FILE="$XDG_STATE_HOME/zsh/starship-preset"
 STARSHIP_BIN="$HOME/.local/bin/starship"
 if ! is_command_available starship; then
 	if ! confirm_step "Install Starship?"; then warn "Starship installation skipped."; exit 0; fi
-	if is_termux; then install_packages pkg starship; else
+	if is_termux; then install_packages pkg starship; record_owned_package pkg starship; else
 		installer="$(mktemp)"; trap 'rm -f "$installer"' EXIT
 		curl -fsSL https://starship.rs/install.sh -o "$installer"
 		mkdir -p "$(dirname "$STARSHIP_BIN")"; sh "$installer" -y -b "$HOME/.local/bin"
+		record_owned_path "$STARSHIP_BIN"
 	fi
 fi
 if [ -s "$STARSHIP_PRESET_FILE" ] && is_command_available starship; then

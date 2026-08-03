@@ -8,6 +8,9 @@ XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 ZDOTDIR="${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}"
+DOTFILES_STATE_DIR="${XDG_STATE_HOME}/dotfiles"
+OWNED_PATHS_FILE="${DOTFILES_STATE_DIR}/owned-paths"
+OWNED_PACKAGES_FILE="${DOTFILES_STATE_DIR}/owned-packages"
 
 log() { printf '[INFO] %s\n' "$1"; }
 warn() { printf '[WARN] %s\n' "$1" >&2; }
@@ -34,6 +37,18 @@ is_termux() {
 }
 
 is_command_available() { command -v "$1" >/dev/null 2>&1; }
+
+record_owned_path() {
+	local path="$1"
+	mkdir -p "$DOTFILES_STATE_DIR"
+	grep -Fqx -- "$path" "$OWNED_PATHS_FILE" 2>/dev/null || printf '%s\n' "$path" >> "$OWNED_PATHS_FILE"
+}
+
+record_owned_package() {
+	local manager="$1" package="$2"
+	mkdir -p "$DOTFILES_STATE_DIR"
+	grep -Fqx -- "$manager:$package" "$OWNED_PACKAGES_FILE" 2>/dev/null || printf '%s:%s\n' "$manager" "$package" >> "$OWNED_PACKAGES_FILE"
+}
 
 require_command() {
 	if ! is_command_available "$1"; then
