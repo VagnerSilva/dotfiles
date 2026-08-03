@@ -183,7 +183,7 @@ main() {
   parse_arguments "$@"
 
   printf '\n### Dotfiles uninstall ###\n'
-  warn "This removes Stow-managed links, Zinit, the managed Starship binary, Zsh cache/state, and the $FONT_NAME Nerd Font."
+  warn "This removes Stow-managed links, Zinit plugins, the managed Starship binary, Zsh cache/state, and the $FONT_NAME Nerd Font."
   warn "It does not uninstall system packages such as zsh, stow, git, or curl."
 
   if ! confirm "Continue with the uninstall?"; then
@@ -195,7 +195,7 @@ main() {
   remove_starship
 
   remove_directory "$ZINIT_HOME" "Zinit repository"
-  remove_directory "$ZINIT_DATA_DIR" "Zinit plugins and managed binaries"
+  remove_directory "$ZINIT_DATA_DIR" "Zinit plugins"
   remove_directory "$XDG_CACHE_HOME/zsh" "Zsh cache"
   remove_directory "$XDG_STATE_HOME/zsh" "Zsh state"
   remove_directory "$FONT_DIR" "Nerd Font"
@@ -207,6 +207,10 @@ main() {
   restore_default_shell
 
   printf '\nUninstall completed.\n'
+}
+
+main "$@"
+l completed.\n'
 }
 
 main "$@"
