@@ -207,19 +207,20 @@ configure_windows_terminals() {
   configure_json_terminal_settings "$vscode" vscode
 
   if [[ -n "$FONT_FILE" ]] && command -v powershell.exe >/dev/null 2>&1; then
-    local windows_font_dir windows_font_file
-    windows_font_dir="$(wslpath -u "$localappdata/Microsoft/Windows/Fonts" 2>/dev/null || true)"
-    if [[ -z "$windows_font_dir" ]]; then
-      warn "Could not resolve the Windows user fonts directory."
+    local font_name font_source
+    font_name="$(basename "$FONT_FILE")"
+    font_source="$(wslpath -w "$FONT_FILE" 2>/dev/null || true)"
+    if [[ -z "$font_source" ]]; then
+      warn "Could not resolve the Windows path for the font file. Configure the terminal font manually in Windows."
       return 0
     fi
-    windows_font_file="$windows_font_dir/$(basename "$FONT_FILE")"
-    mkdir -p "$windows_font_dir"
-    if ! cp -- "$FONT_FILE" "$windows_font_file"; then
+    if ! FONT_SOURCE="$font_source" FONT_NAME="$font_name" powershell.exe -NoProfile -Command '$destination = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Fonts"; New-Item -ItemType Directory -Path $destination -Force | Out-Null; Copy-Item -LiteralPath $env:FONT_SOURCE -Destination (Join-Path $destination $env:FONT_NAME) -Force' >/dev/null 2>&1; then
       warn "Could not copy the font to the Windows user fonts directory. Configure the terminal font manually in Windows."
       return 0
     fi
-    powershell.exe -NoProfile -Command "New-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' -Name '${FONT_FAMILY} (TrueType)' -Value \"\$env:LOCALAPPDATA\\Microsoft\\Windows\\Fonts\\$(basename "$FONT_FILE")\" -PropertyType String -Force | Out-Null" >/dev/null 2>&1 || warn "Could not register font in Windows user profile."
+    if ! FONT_NAME="$font_name" FONT_FAMILY="$FONT_FAMILY" powershell.exe -NoProfile -Command '$font_path = Join-Path $env:LOCALAPPDATA ("Microsoft\Windows\Fonts\" + $env:FONT_NAME); New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name ("{0} (TrueType)" -f $env:FONT_FAMILY) -Value $font_path -PropertyType String -Force | Out-Null' >/dev/null 2>&1; then
+      warn "Font copied, but could not register it in the Windows user profile."
+    fi
     log "Installed Windows font for detected terminals: $FONT_FAMILY"
   fi
 }
