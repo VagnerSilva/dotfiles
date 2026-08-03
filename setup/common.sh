@@ -65,6 +65,7 @@ detect_package_manager() {
 	elif is_command_available pacman; then echo pacman
 	elif is_command_available zypper; then echo zypper
 	elif is_command_available apk; then echo apk
+	elif is_command_available brew; then echo brew
 	else echo ""
 	fi
 }

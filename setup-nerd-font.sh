@@ -6,8 +6,10 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup/common.sh"
 
 FONT_NAME="${NERD_FONT_NAME:-Meslo}"
 FONT_VERSION="${NERD_FONT_VERSION:-v3.2.1}"
-FONT_ZIP="${FONT_NAME}.zip"
-FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/${FONT_VERSION}/${FONT_ZIP}"
+FONT_REGULAR_FILE="MesloLGSNerdFont-Regular.ttf"
+FONT_BOLD_FILE="MesloLGSNerdFont-Bold.ttf"
+FONT_REGULAR_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/${FONT_VERSION}/patched-fonts/Meslo/S/Regular/${FONT_REGULAR_FILE}"
+FONT_BOLD_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/${FONT_VERSION}/patched-fonts/Meslo/S/Bold/${FONT_BOLD_FILE}"
 
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -55,21 +57,20 @@ require_command() {
 }
 
 font_already_installed() {
-  [[ -d "$FONT_DIR" ]] && find "$FONT_DIR" -type f \( -name '*.ttf' -o -name '*.otf' \) | read -r
+  [[ -f "$FONT_DIR/$FONT_REGULAR_FILE" && -f "$FONT_DIR/$FONT_BOLD_FILE" ]]
 }
 
-download_and_extract_font() {
+download_fonts() {
   local tmp_dir
   tmp_dir="$(mktemp -d)"
   trap '[[ -n "${tmp_dir:-}" ]] && rm -rf "$tmp_dir"' RETURN
 
   mkdir -p "$FONT_DIR"
-
-  log "Downloading ${FONT_NAME} Nerd Font (${FONT_VERSION})..."
-  curl -fL "$FONT_URL" -o "$tmp_dir/$FONT_ZIP"
-
-  log "Extracting font files to $FONT_DIR"
-  unzip -o "$tmp_dir/$FONT_ZIP" -d "$FONT_DIR" >/dev/null
+  log "Downloading ${FONT_NAME} Nerd Font Regular and Bold (${FONT_VERSION})..."
+  curl -fL "$FONT_REGULAR_URL" -o "$tmp_dir/$FONT_REGULAR_FILE"
+  curl -fL "$FONT_BOLD_URL" -o "$tmp_dir/$FONT_BOLD_FILE"
+  install -m 0644 "$tmp_dir/$FONT_REGULAR_FILE" "$FONT_DIR/$FONT_REGULAR_FILE"
+  install -m 0644 "$tmp_dir/$FONT_BOLD_FILE" "$FONT_DIR/$FONT_BOLD_FILE"
 
   trap - RETURN
   rm -rf "$tmp_dir"
@@ -239,14 +240,14 @@ configure_detected_terminals() {
 
 main() {
   require_command curl
-  require_command unzip
+  require_command install
 
   if font_already_installed; then
-    log "Nerd Font already installed: $FONT_NAME"
+    log "Nerd Font already installed: $FONT_NAME (Regular and Bold)"
   else
-    download_and_extract_font
+    download_fonts
     record_owned_path "$FONT_DIR"
-    log "Nerd Font installation completed: $FONT_NAME"
+    log "Nerd Font installation completed: $FONT_NAME (Regular and Bold)"
   fi
 
   refresh_font_cache
