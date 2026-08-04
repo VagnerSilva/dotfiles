@@ -19,12 +19,12 @@ fi
 # ========================================
 # 🧱 RC MODULES
 # ========================================
-source_if_exists "$ZDOTDIR/rc/options.zsh"
-source_if_exists "$ZDOTDIR/rc/aliases.zsh"
-source_if_exists "$ZDOTDIR/rc/history.zsh"
-source_if_exists "$ZDOTDIR/rc/zinit.zsh"
-source_if_exists "$ZDOTDIR/rc/completion.zsh"
-source_if_exists "$ZDOTDIR/rc/tools.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/rc/options.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/rc/aliases.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/rc/history.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/rc/zinit.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/rc/completion.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/rc/tools.zsh"
 
 # ZLE plugins require an initialized completion system. Load them in the
 # foreground instead of Zinit Turbo jobs to keep concurrent terminal startup

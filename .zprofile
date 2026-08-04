@@ -43,11 +43,11 @@
 # }}
 
 # Load environment modules explicitly so XDG is available first.
-source "$ZDOTDIR/env/xdg-zsh.zsh"
-source "$ZDOTDIR/env/paths.zsh"
-source "$ZDOTDIR/env/general.zsh"
-source "$ZDOTDIR/env/programs.zsh"
-source "$ZDOTDIR/env/sdkman.zsh"
+source "$ZSH_CONFIG_DIR/env/xdg-zsh.zsh"
+source "$ZSH_CONFIG_DIR/env/paths.zsh"
+source "$ZSH_CONFIG_DIR/env/general.zsh"
+source "$ZSH_CONFIG_DIR/env/programs.zsh"
+source "$ZSH_CONFIG_DIR/env/sdkman.zsh"
 
 # Mark as sourced so .zshrc can skip re-sourcing on login shells.
 export _ZPROFILE_SOURCED=1
