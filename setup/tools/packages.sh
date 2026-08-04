@@ -5,6 +5,11 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/common.sh"
 manager="$(detect_package_manager)"
 [ -n "$manager" ] || { error "No supported package manager found."; exit 1; }
 
+# Force regeneration after installation or package upgrades.
+if is_command_available direnv; then
+	rm -f -- "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
+fi
+
 packages=(fzf fd bat ripgrep direnv cloc zoxide atuin gh)
 missing=()
 install_names=()
