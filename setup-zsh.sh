@@ -160,8 +160,26 @@ set_default_shell_to_zsh() {
   log "Open a new session for full effect."
 }
 
-backup_current_zshrc() {
-  return 0
+migrate_zsh_startup_files() {
+  local name legacy target backup timestamp
+  timestamp="$(date +%Y%m%d%H%M%S)"
+  for name in .zshrc .zprofile .zlogout; do
+    legacy="$STOW_TARGET/.config/zsh/$name"
+    target="$STOW_TARGET/$name"
+    if [[ -L "$legacy" ]]; then
+      rm -- "$legacy"
+      log "Removed legacy Zsh link: $legacy"
+    elif [[ -f "$legacy" ]]; then
+      backup="${legacy}.backup.${timestamp}"
+      mv -- "$legacy" "$backup"
+      log "Backed up legacy Zsh file: $legacy -> $backup"
+    fi
+    if [[ -f "$target" && ! -L "$target" ]]; then
+      backup="${target}.backup.${timestamp}"
+      mv -- "$target" "$backup"
+      log "Backed up existing Zsh file: $target -> $backup"
+    fi
+  done
 }
 
 apply_stow_layout() {

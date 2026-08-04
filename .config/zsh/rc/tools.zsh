@@ -1,4 +1,5 @@
 # Environment: Interactive Tools
+# Loaded from ~/.zshrc; tool modules live under $ZSH_CONFIG_DIR.
 # Modeline {{
 #	vi: foldmarker={{,}} filetype=zsh foldmethod=marker foldlevel=0 tabstop=4 shiftwidth=4:
 # }}
