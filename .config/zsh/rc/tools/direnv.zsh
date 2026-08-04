@@ -7,7 +7,7 @@ if [ -n "$_direnv_bin" ] && [ -x "$_direnv_bin" ]; then
 		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 		{
 			printf '%s\n' "$_direnv_cache_marker"
-			"$_direnv_bin" hook zsh | sed 's/ export zsh)"/ export zsh 2>\\/dev\\/null)"/'
+			"$_direnv_bin" hook zsh | sed 's| export zsh)"| export zsh 2>/dev/null)"|'
 		} > "$_direnv_cache.tmp" && mv -- "$_direnv_cache.tmp" "$_direnv_cache"
 	fi
 	[ -f "$_direnv_cache" ] && source "$_direnv_cache"
