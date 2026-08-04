@@ -178,14 +178,51 @@ set_default_shell_to_zsh() {
   fi
 
   ensure_zsh_in_shells
-  chsh -s "$zsh_path"
-
-  log "Default shell changed to $zsh_path."
+  if chsh -s "$zsh_path"; then
+    log "Default shell changed to $zsh_path."
+  else
+    warn "Could not change the login shell with chsh. New Zsh sessions will still export SHELL=$zsh_path."
+  fi
   log "Open a new session for full effect."
 }
 
-backup_current_zshrc() {
-  return 0
+backup_stow_conflicts() {
+  local source relative_path target backup timestamp
+  timestamp="$(date +%Y%m%d%H%M%S)"
+
+  while IFS= read -r -d '' source; do
+    relative_path="${source#"$SCRIPT_DIR/"}"
+    target="$STOW_TARGET/$relative_path"
+
+    if [[ ! -e "$target" && ! -L "$target" ]]; then
+      continue
+    fi
+
+    if [[ -L "$target" ]] && [[ "$(readlink -f "$target" 2>/dev/null || true)" == "$source" ]]; then
+      continue
+    fi
+
+    if [[ -d "$target" && ! -L "$target" ]]; then
+      continue
+    fi
+
+    backup="${target}.dotfiles-backup.${timestamp}"
+    while [[ -e "$backup" || -L "$backup" ]]; do
+      timestamp=$((timestamp + 1))
+      backup="${target}.dotfiles-backup.${timestamp}"
+    done
+
+    mv -- "$target" "$backup"
+    log "Backed up existing file: $target -> $backup"
+  done < <(
+    find "$SCRIPT_DIR" -type f \
+      ! -path "$SCRIPT_DIR/.git/*" \
+      ! -path "$SCRIPT_DIR/setup/*" \
+      ! -name 'setup-*.sh' \
+      ! -name 'install.sh' \
+      ! -name 'uninstall.sh' \
+      -print0
+  )
 }
 
 apply_stow_layout() {
@@ -198,6 +235,8 @@ apply_stow_layout() {
     error "Missing directory: $SCRIPT_DIR/.config/zsh"
     return 1
   fi
+
+  backup_stow_conflicts
 
   (
     cd "$SCRIPT_DIR"
