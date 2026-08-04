@@ -159,7 +159,10 @@ ensure_zsh_in_shells() {
   fi
 
   log "Adding $zsh_path to /etc/shells"
-  echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+  if ! echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null; then
+    warn "Could not update /etc/shells; chsh may fail."
+    return 1
+  fi
 }
 
 set_default_shell_to_zsh() {
@@ -169,15 +172,21 @@ set_default_shell_to_zsh() {
     return 0
   fi
 
-  local zsh_path
+  local zsh_path login_shell user_name
   zsh_path="$(command -v zsh)"
+  user_name="${USER:-${LOGNAME:-$(id -un)}}"
+  login_shell="$(getent passwd "$user_name" 2>/dev/null | cut -d: -f7 || true)"
+  login_shell="${login_shell:-$SHELL}"
 
-  if [[ "$SHELL" == "$zsh_path" ]]; then
-    log "zsh is already the default shell for this session ($SHELL)."
+  if [[ "$login_shell" == "$zsh_path" ]]; then
+    log "zsh is already the login shell ($login_shell)."
     return 0
   fi
 
-  ensure_zsh_in_shells
+  if ! ensure_zsh_in_shells; then
+    warn "Continuing without changing the login shell."
+    return 0
+  fi
   if chsh -s "$zsh_path"; then
     log "Default shell changed to $zsh_path."
   else
