@@ -18,10 +18,14 @@ case "$_starship_bin" in
 esac
 if [ -n "$_starship_bin" ]; then
 	_starship_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/starship_init.zsh"
-	if [ ! -s "$_starship_cache" ] || [ "$_starship_bin" -nt "$_starship_cache" ]; then
+	_starship_marker="# starship-bin: $_starship_bin"
+	if [ ! -s "$_starship_cache" ] || ! grep -Fqx -- "$_starship_marker" "$_starship_cache" 2>/dev/null; then
 		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
-		"$_starship_bin" init zsh > "$_starship_cache"
+		{
+			printf '%s\n' "$_starship_marker"
+			"$_starship_bin" init zsh
+		} > "$_starship_cache.tmp" && mv -- "$_starship_cache.tmp" "$_starship_cache"
 	fi
 	[ -f "$_starship_cache" ] && source "$_starship_cache"
 fi
-unset _starship_bin _starship_cache
+unset _starship_bin _starship_cache _starship_marker
