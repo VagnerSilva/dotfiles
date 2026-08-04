@@ -207,7 +207,6 @@ apply_stow_layout() {
       --ignore='^setup-.*\.sh$' \
       --ignore='^install\.sh$' \
       --ignore='^uninstall\.sh$' \
-      --ignore='^\.config/starship\.toml$' \
       .
   )
 
