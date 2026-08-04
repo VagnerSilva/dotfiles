@@ -85,31 +85,19 @@ remove_stowed_links() {
   )
 }
 
-remove_directory() {
+remove_path() {
   local path="$1"
   local description="$2"
 
-  if [[ -d "$path" ]]; then
-    rm -rf "$path"
+  if [[ -f "$path" || -L "$path" ]]; then
+    rm -f -- "$path"
     log "Removed $description: $path"
   fi
 }
 
-remove_empty_directory() {
-  local path="$1"
 
-  rmdir "$path" 2>/dev/null || true
-}
 
 remove_starship() {
-  remove_directory "$STARSHIP_PLUGIN_DIR" "Starship Zinit plugin"
-  remove_directory "$LEGACY_STARSHIP_PLUGIN_DIR" "malformed legacy Starship plugin"
-
-  if [[ -f "$STARSHIP_BINARY" ]]; then
-    rm -f -- "$STARSHIP_BINARY"
-    log "Removed Starship binary: $STARSHIP_BINARY"
-  fi
-
   if [[ -f "$STARSHIP_CACHE_FILE" ]]; then
     rm -f -- "$STARSHIP_CACHE_FILE"
     log "Removed Starship shell cache: $STARSHIP_CACHE_FILE"
@@ -121,38 +109,7 @@ remove_starship() {
   fi
 }
 
-refresh_font_cache() {
-  if [[ -d "$XDG_DATA_HOME/fonts" ]] && command -v fc-cache >/dev/null 2>&1; then
-    fc-cache -f "$XDG_DATA_HOME/fonts" >/dev/null
-  fi
-}
 
-restore_default_shell() {
-  local bash_path
-
-  bash_path="$(command -v bash 2>/dev/null || true)"
-  if [[ -z "$bash_path" ]]; then
-    warn "bash was not found; default shell was not changed."
-    return 0
-  fi
-
-  if [[ "$SHELL" == "$bash_path" ]]; then
-    log "The current default shell is already bash."
-    return 0
-  fi
-
-  if "$ASSUME_YES"; then
-    log "Kept the current default shell in non-interactive mode."
-    return 0
-  fi
-
-  if confirm "Change the default shell to $bash_path?"; then
-    chsh -s "$bash_path"
-    log "Default shell changed to $bash_path. Sign out and back in to apply it."
-  else
-    log "Kept the current default shell."
-  fi
-}
 
 parse_arguments() {
   while (($#)); do
@@ -177,8 +134,8 @@ main() {
   parse_arguments "$@"
 
   printf '\n### Dotfiles uninstall ###\n'
-  warn "This removes Stow-managed links, Zinit, the managed Starship binary, Zsh cache/state, and the $FONT_NAME Nerd Font."
-  warn "It does not uninstall system packages such as zsh, stow, git, or curl."
+  warn "This removes only Stow-managed links and project caches."
+  warn "Installed tools, Git, repositories, fonts, and user configuration are preserved."
 
   if ! confirm "Continue with the uninstall?"; then
     log "Uninstall cancelled."
@@ -188,17 +145,17 @@ main() {
   remove_stowed_links
   remove_starship
 
-  remove_directory "$ZINIT_HOME" "Zinit repository"
-  remove_directory "$ZINIT_DATA_DIR" "Zinit plugins and managed binaries"
-  remove_directory "$XDG_CACHE_HOME/zsh" "Zsh cache"
-  remove_directory "$XDG_STATE_HOME/zsh" "Zsh state"
-  remove_directory "$FONT_DIR" "Nerd Font"
-
-  remove_empty_directory "$XDG_CONFIG_HOME/zsh"
-  remove_empty_directory "$XDG_CONFIG_HOME/eza"
-  remove_empty_directory "$XDG_CONFIG_HOME/fzf-marks"
-  refresh_font_cache
-  restore_default_shell
+  # Never remove tools, repositories, fonts, or user configuration.
+  # Only links created by this repository and its transient caches are removed.
+  remove_path "$XDG_CACHE_HOME/zsh/direnv_hook.zsh" "direnv cache"
+  remove_path "$XDG_CACHE_HOME/zsh/fnm_env.zsh" "fnm cache"
+  remove_path "$XDG_CACHE_HOME/zsh/mise_activate.zsh" "mise cache"
+  remove_path "$XDG_CACHE_HOME/zsh/atuin_init.zsh" "Atuin cache"
+  remove_path "$XDG_CACHE_HOME/zsh/batman_env.zsh" "bat cache"
+  remove_path "$XDG_CACHE_HOME/zsh/fzf.zsh" "fzf cache"
+  remove_path "$XDG_CACHE_HOME/zsh/starship_init.zsh" "Starship cache"
+  remove_path "$XDG_STATE_HOME/zsh/starship-preset" "Starship state"
+  remove_path "$XDG_STATE_HOME/zsh/features/fzf-tab.enabled" "fzf-tab state"
 
   printf '\nUninstall completed.\n'
 }
