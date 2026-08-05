@@ -247,16 +247,17 @@ apply_stow_layout() {
 
   backup_stow_conflicts
 
-  (
-    cd "$SCRIPT_DIR"
-    stow --target="$STOW_TARGET" --restow \
-      --ignore='^\.git$' \
-      --ignore='^setup$' \
-      --ignore='^setup-.*\.sh$' \
-      --ignore='^install\.sh$' \
-      --ignore='^uninstall\.sh$' \
-      .
-  )
+  local stow_dir package_name
+  stow_dir="$(dirname "$SCRIPT_DIR")"
+  package_name="$(basename "$SCRIPT_DIR")"
+
+  stow --dir="$stow_dir" --target="$STOW_TARGET" --restow \
+    --ignore='^\.git$' \
+    --ignore='^setup$' \
+    --ignore='^setup-.*\.sh$' \
+    --ignore='^install\.sh$' \
+    --ignore='^uninstall\.sh$' \
+    "$package_name"
 
   log "Dotfiles linked with stow to $STOW_TARGET"
 }
