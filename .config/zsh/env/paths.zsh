@@ -32,11 +32,21 @@ typeset -U path
 # Remove duplicates in fpath while keeping the first occurrence.
 typeset -U fpath
 
-# Ensure directories used by Zsh and its tools exist.
-mkdir -p \
+# Ensure directories used by Zsh and its tools exist without depending on PATH.
+if [ -x "${PREFIX:-}/bin/mkdir" ]; then
+  _zsh_mkdir="${PREFIX}/bin/mkdir"
+elif [ -x /bin/mkdir ]; then
+  _zsh_mkdir=/bin/mkdir
+elif [ -x /usr/bin/mkdir ]; then
+  _zsh_mkdir=/usr/bin/mkdir
+else
+  return 1
+fi
+"$_zsh_mkdir" -p \
   "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" \
   "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions" \
   "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+unset _zsh_mkdir
 
 # fpath for custom functions and completions.
 fpath=("${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" $fpath)

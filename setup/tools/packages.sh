@@ -10,7 +10,10 @@ if is_command_available direnv; then
 	rm -f -- "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
 fi
 
-packages=(fzf fd bat ripgrep direnv cloc zoxide atuin gh)
+packages=(fzf fd bat ripgrep direnv cloc zoxide gh)
+if [ "$manager" != apt ]; then
+	packages+=(atuin)
+fi
 missing=()
 install_names=()
 for package in "${packages[@]}"; do
@@ -26,10 +29,6 @@ for package in "${packages[@]}"; do
 	esac
 
 	if ! is_command_available "$command_name"; then
-		if [ "$manager" = apt ] && [ "$package" = atuin ]; then
-			warn "Package atuin is not available in the APT repositories; skipping it."
-			continue
-		fi
 		missing+=("$package")
 		install_names+=("$install_name")
 	fi
