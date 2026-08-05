@@ -34,7 +34,7 @@ choose_starship_preset() {
 				;;
 			*)
 				mkdir -p "$(dirname "$STARSHIP_CONFIG_FILE")"
-				"$starship_cmd" preset "$preset" --output "$STARSHIP_CONFIG_FILE" --force
+				"$starship_cmd" preset "$preset" --output "$STARSHIP_CONFIG_FILE"
 				mkdir -p "$(dirname "$STARSHIP_PRESET_FILE")"
 				printf '%s\n' "$preset" > "$STARSHIP_PRESET_FILE"
 				log "Starship preset configured: $preset"
@@ -73,7 +73,7 @@ fi
 if [ -s "$STARSHIP_PRESET_FILE" ] && starship_command >/dev/null 2>&1; then
 	read -r preset < "$STARSHIP_PRESET_FILE"
 	mkdir -p "$(dirname "$STARSHIP_CONFIG_FILE")"
-	"$(starship_command)" preset "$preset" --output "$STARSHIP_CONFIG_FILE" --force
+	"$(starship_command)" preset "$preset" --output "$STARSHIP_CONFIG_FILE"
 else
 	choose_starship_preset
 fi
