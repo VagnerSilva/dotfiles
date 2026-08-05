@@ -155,7 +155,7 @@ main() {
 	remove_owned_tools
 	remove_path "$STATE_DIR" "dotfiles ownership state"
 	printf '\nUninstall completed.\n'
-	warn "The current Zsh process may still hold the removed Starship hook. Run 'exec zsh' or close and reopen the terminal."
+	log "Uninstall completed. Restart the current shell with 'exec zsh -l' to unload the in-memory Starship hook."
 }
 
 main "$@"
