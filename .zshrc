@@ -9,10 +9,14 @@ source_if_exists() {
   fi
 }
 
-# Termux opens interactive Zsh as a non-login shell, so .zprofile does not
-# initialize an already-installed SDKMAN. Load it here once for Termux only.
-if { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
-  && [ "${_ZPROFILE_SOURCED:-}" != 1 ]; then
+# Interactive terminals do not always start as login shells. Load the
+# environment modules here when .zprofile was not read.
+if [ "${_ZPROFILE_SOURCED:-}" != 1 ]; then
+  export _ZPROFILE_SOURCED=1
+  source_if_exists "$ZSH_CONFIG_DIR/env/xdg-zsh.zsh"
+  source_if_exists "$ZSH_CONFIG_DIR/env/paths.zsh"
+  source_if_exists "$ZSH_CONFIG_DIR/env/general.zsh"
+  source_if_exists "$ZSH_CONFIG_DIR/env/programs.zsh"
   source_if_exists "$ZSH_CONFIG_DIR/env/sdkman.zsh"
 fi
 
