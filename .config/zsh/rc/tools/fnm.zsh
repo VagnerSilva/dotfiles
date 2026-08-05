@@ -9,6 +9,8 @@ else
 	fi
 fi
 if [ -n "$_fnm_bin" ] && "$_fnm_bin" --version >/dev/null 2>&1; then
+	export PATH="$(dirname "$_fnm_bin"):$PATH"
+	rehash 2>/dev/null || true
 	_fnm_env_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fnm_env.zsh"
 	if [ ! -s "$_fnm_env_cache" ] || [ "$_fnm_bin" -nt "$_fnm_env_cache" ]; then
 		mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"

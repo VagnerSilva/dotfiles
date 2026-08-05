@@ -43,6 +43,10 @@
 # }}
 
 # Load environment modules explicitly so XDG is available first.
+if [ "${_ZPROFILE_SOURCED:-}" = 1 ]; then
+  return 0
+fi
+
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
 source_if_exists() {
