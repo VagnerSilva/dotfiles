@@ -166,6 +166,11 @@ ensure_zsh_in_shells() {
 }
 
 set_default_shell_to_zsh() {
+  if ! is_zsh_installed; then
+    error "zsh is not available; install it before changing the default shell."
+    return 1
+  fi
+
   if is_termux; then
     log "Termux detected. Skipping chsh."
     log "Start zsh manually with: zsh"
@@ -175,8 +180,12 @@ set_default_shell_to_zsh() {
   local zsh_path login_shell user_name
   zsh_path="$(command -v zsh)"
   user_name="${USER:-${LOGNAME:-$(id -un)}}"
-  login_shell="$(getent passwd "$user_name" 2>/dev/null | cut -d: -f7 || true)"
-  login_shell="${login_shell:-$SHELL}"
+  if is_command_available getent; then
+    login_shell="$(getent passwd "$user_name" 2>/dev/null | cut -d: -f7 || true)"
+  else
+    login_shell=""
+  fi
+  login_shell="${login_shell:-${SHELL:-}}"
 
   if [[ "$login_shell" == "$zsh_path" ]]; then
     log "zsh is already the login shell ($login_shell)."
@@ -229,6 +238,11 @@ backup_stow_conflicts() {
 }
 
 apply_stow_layout() {
+  if ! is_command_available stow; then
+    error "stow is not available; install it before applying dotfiles."
+    return 1
+  fi
+
   if [[ ! -f "$SCRIPT_DIR/.zshenv" ]]; then
     error "Missing file: $SCRIPT_DIR/.zshenv"
     return 1
@@ -241,17 +255,16 @@ apply_stow_layout() {
 
   backup_stow_conflicts
 
-  local stow_dir package_name
-  stow_dir="$(dirname "$SCRIPT_DIR")"
-  package_name="$(basename "$SCRIPT_DIR")"
-
-  stow --dir="$stow_dir" --target="$STOW_TARGET" --restow \
-    --ignore='^\.git$' \
-    --ignore='^setup$' \
-    --ignore='^setup-.*\.sh$' \
-    --ignore='^install\.sh$' \
-    --ignore='^uninstall\.sh$' \
-    "$package_name"
+  (
+    cd "$SCRIPT_DIR"
+    stow --target="$STOW_TARGET" --restow \
+      --ignore='^\.git$' \
+      --ignore='^setup$' \
+      --ignore='^setup-.*\.sh$' \
+      --ignore='^install\.sh$' \
+      --ignore='^uninstall\.sh$' \
+      .
+  )
 
   log "Dotfiles linked with stow to $STOW_TARGET"
 }
