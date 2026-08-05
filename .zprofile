@@ -56,14 +56,13 @@ source_if_exists() {
   fi
 }
 
-source_if_exists "$ZSH_CONFIG_DIR/env/xdg-zsh.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/env/paths.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/env/general.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/env/programs.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/env/sdkman.zsh"
 
 # Mark as sourced so .zshrc can skip re-sourcing on login shells.
-export _ZPROFILE_SOURCED=1
+typeset -g _ZPROFILE_SOURCED=1
 
 # Profiling - end {{
 #zprof

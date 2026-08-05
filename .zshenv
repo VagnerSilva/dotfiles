@@ -4,6 +4,7 @@ fi
 
 export ZDOTDIR="$HOME"
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
+unset _ZPROFILE_SOURCED
 
 ZSH_ENV_FILE="$ZSH_CONFIG_DIR/env/xdg-zsh.zsh"
 

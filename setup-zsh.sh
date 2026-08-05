@@ -196,8 +196,7 @@ set_default_shell_to_zsh() {
 }
 
 backup_stow_conflicts() {
-  local source relative_path target backup timestamp
-  timestamp="$(date +%Y%m%d%H%M%S)"
+  local source relative_path target backup
 
   while IFS= read -r -d '' source; do
     relative_path="${source#"$SCRIPT_DIR/"}"
@@ -215,13 +214,8 @@ backup_stow_conflicts() {
       continue
     fi
 
-    backup="${target}.dotfiles-backup.${timestamp}"
-    while [[ -e "$backup" || -L "$backup" ]]; do
-      timestamp=$((timestamp + 1))
-      backup="${target}.dotfiles-backup.${timestamp}"
-    done
-
-    mv -- "$target" "$backup"
+    backup="${target}.dotfiles-backup"
+    mv -f -- "$target" "$backup"
     log "Backed up existing file: $target -> $backup"
   done < <(
     find "$SCRIPT_DIR" -type f \
