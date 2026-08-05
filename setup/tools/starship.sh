@@ -15,27 +15,12 @@ starship_asset() {
 	fi
 
 	case "$(uname -s):$(uname -m)" in
-		Linux:x86_64)
-			if [ -e /lib/ld-musl-x86_64.so.1 ] || [ -e /lib64/ld-musl-x86_64.so.1 ]; then
-				printf '%s\n' starship-x86_64-unknown-linux-musl.tar.gz
-			else
-				printf '%s\n' starship-x86_64-unknown-linux-gnu.tar.gz
-			fi
-			;;
-		Linux:aarch64|Linux:arm64)
-			if [ -e /lib/ld-musl-aarch64.so.1 ] || [ -e /lib64/ld-musl-aarch64.so.1 ]; then
-				printf '%s\n' starship-aarch64-unknown-linux-musl.tar.gz
-			else
-				printf '%s\n' starship-aarch64-unknown-linux-gnu.tar.gz
-			fi
-			;;
-		Linux:armv7l|Linux:armv6l) printf '%s\n' starship-arm-unknown-linux-gnueabihf.tar.gz ;;
-		Linux:i686|Linux:i386) printf '%s\n' starship-i686-unknown-linux-gnu.tar.gz ;;
-		Linux:riscv64) printf '%s\n' starship-riscv64gc-unknown-linux-gnu.tar.gz ;;
+		Linux:x86_64) printf '%s\n' starship-x86_64-unknown-linux-gnu.tar.gz ;;
+		Linux:aarch64|Linux:arm64) printf '%s\n' starship-aarch64-unknown-linux-musl.tar.gz ;;
 		Darwin:x86_64) printf '%s\n' starship-x86_64-apple-darwin.tar.gz ;;
 		Darwin:arm64) printf '%s\n' starship-aarch64-apple-darwin.tar.gz ;;
 		*)
-			error "Unsupported platform for Starship: $(uname -s)/$(uname -m). Set STARSHIP_ASSET to a release asset."
+			error "Unsupported platform for Starship: $(uname -s)/$(uname -m). Set STARSHIP_ASSET."
 			return 1
 			;;
 	esac
@@ -49,6 +34,14 @@ starship_command() {
 	else
 		return 1
 	fi
+}
+
+install_starship_from_package_manager() {
+	local manager
+	manager="$(detect_package_manager)"
+	[ -n "$manager" ] || return 1
+	install_packages "$manager" starship
+	is_command_available starship
 }
 
 choose_starship_preset() {
@@ -88,17 +81,28 @@ if ! starship_command >/dev/null 2>&1; then
 	else
 		archive="$(mktemp)"
 		trap 'rm -f "$archive"' EXIT
-		asset="$(starship_asset)"
-		url="https://github.com/starship/starship/releases/download/v${STARSHIP_VERSION}/${asset}"
-		if ! curl -fsSL --retry 3 "$url" -o "$archive"; then
-			error "Starship asset unavailable (v${STARSHIP_VERSION}): $asset"
-			error "Set STARSHIP_VERSION or STARSHIP_ASSET to a compatible release asset."
-			exit 1
+		installed=false
+		if is_command_available curl && is_command_available tar; then
+			asset="$(starship_asset)"
+			url="https://github.com/starship/starship/releases/download/v${STARSHIP_VERSION}/${asset}"
+			if curl -fsSL --retry 3 "$url" -o "$archive"; then
+				mkdir -p "$(dirname "$STARSHIP_BIN")"
+				tar -xzf "$archive" -C "$(dirname "$STARSHIP_BIN")"
+				if [ -x "$STARSHIP_BIN" ]; then
+					record_owned_path "$STARSHIP_BIN"
+					installed=true
+				fi
+			fi
 		fi
-		mkdir -p "$(dirname "$STARSHIP_BIN")"
-		tar -xzf "$archive" -C "$(dirname "$STARSHIP_BIN")"
-		[ -x "$STARSHIP_BIN" ] || { error "Starship archive did not install $STARSHIP_BIN"; exit 1; }
-		record_owned_path "$STARSHIP_BIN"
+		if [ "$installed" != true ] && install_starship_from_package_manager; then
+			record_owned_package "$(detect_package_manager)" starship
+			installed=true
+		fi
+		[ "$installed" = true ] || {
+			error "Starship installation failed."
+			error "Asset: v${STARSHIP_VERSION}/${asset:-unavailable}"
+			exit 1
+		}
 	fi
 fi
 
