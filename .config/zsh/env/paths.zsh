@@ -32,14 +32,14 @@ typeset -U path
 # Remove duplicates in fpath while keeping the first occurrence.
 typeset -U fpath
 
-# Ensure zsh config/cache directories exist in the XDG layout.
-test -d "${XDG_CONFIG_HOME:-$HOME/.config}/zsh" || mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
-test -d "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" || mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions"
-test -d "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions" || mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions"
-test -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh" || mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+# Ensure directories used by Zsh and its tools exist.
+mkdir -p \
+  "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" \
+  "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions" \
+  "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 
-# fpath for custom zsh functions and completions.
-test -d "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" && fpath=("${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" $fpath)
-test -d "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions" && fpath=("${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions" $fpath)
+# fpath for custom functions and completions.
+fpath=("${XDG_CONFIG_HOME:-$HOME/.config}/zsh/functions" $fpath)
+fpath=("${XDG_CONFIG_HOME:-$HOME/.config}/zsh/completions" $fpath)
 
 # PATH is already properly set and exported by this point
