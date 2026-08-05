@@ -9,15 +9,10 @@ source_if_exists() {
   fi
 }
 
-# Interactive terminals do not always start as login shells. Load the
-# environment modules here when .zprofile was not read.
+# Interactive terminals do not always start as login shells. Reuse the
+# login environment setup when .zprofile was not read automatically.
 if [ "${_ZPROFILE_SOURCED:-}" != 1 ]; then
-  export _ZPROFILE_SOURCED=1
-  source_if_exists "$ZSH_CONFIG_DIR/env/xdg-zsh.zsh"
-  source_if_exists "$ZSH_CONFIG_DIR/env/paths.zsh"
-  source_if_exists "$ZSH_CONFIG_DIR/env/general.zsh"
-  source_if_exists "$ZSH_CONFIG_DIR/env/programs.zsh"
-  source_if_exists "$ZSH_CONFIG_DIR/env/sdkman.zsh"
+  source_if_exists "$HOME/.zprofile"
 fi
 
 # ========================================
