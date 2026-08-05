@@ -13,7 +13,7 @@ source_if_exists() {
 # initialize an already-installed SDKMAN. Load it here once for Termux only.
 if { [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; } \
   && [ "${_ZPROFILE_SOURCED:-}" != 1 ]; then
-  source_if_exists "$ZDOTDIR/env/sdkman.zsh"
+  source_if_exists "$ZSH_CONFIG_DIR/env/sdkman.zsh"
 fi
 
 # ========================================
