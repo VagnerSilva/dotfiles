@@ -1,3 +1,4 @@
 # Generated Zsh completion caches are host-specific and can become stale.
 .config/zsh/.zcompdump
 .config/zsh/*.zwc
+.qwen

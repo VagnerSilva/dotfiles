@@ -31,3 +31,11 @@ source_if_exists "$ZSH_CONFIG_DIR/rc/tools.zsh"
 if type load_zle_plugins >/dev/null 2>&1; then
   load_zle_plugins
 fi
+
+# pnpm
+export PNPM_HOME="/home/vs/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac
+# pnpm end

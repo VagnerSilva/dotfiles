@@ -1,0 +1,4 @@
+interface:
+  display_name: "Instalação de Dotfiles Linux"
+  short_description: "Instale dotfiles Linux com segurança"
+  default_prompt: "Use $linux-dotfiles-installation para diagnosticar ou alterar com segurança a instalação de dotfiles em Linux ou Termux."
