@@ -115,7 +115,7 @@ if type zinit >/dev/null 2>&1; then
 fi
 
 # Completion for functions
-# For functions in $ZSH_CONFIG_DIR/functions/
+# For functions in $ZDOTDIR/functions/
 
 # Complete files on $PATH
 if command -v viw >/dev/null 2>&1; then

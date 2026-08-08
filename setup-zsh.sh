@@ -28,20 +28,33 @@ print_step() {
 confirm_step() {
   local message="$1"
   local answer
-  printf '%s [y/N]: ' "$message"
-  read -r answer
-  case "$answer" in
-    y|Y|yes|YES) return 0 ;;
-    *) return 1 ;;
-  esac
+
+  while true; do
+    printf '%s [y/N]: ' "$message"
+    if ! read -r answer; then
+      warn "Input closed; using the safe default (No)."
+      return 1
+    fi
+    case "$answer" in
+      y|Y|yes|YES) return 0 ;;
+      ""|n|N|no|NO) return 1 ;;
+      *) warn "Invalid option. Enter y or n." ;;
+    esac
+  done
 }
 
 is_command_available() {
   command -v "$1" >/dev/null 2>&1
 }
 
+is_termux() {
+  [[ -n "${TERMUX_VERSION:-}" ]]
+}
+
 detect_package_manager() {
-  if is_command_available apt-get; then
+  if is_termux; then
+    echo "pkg"
+  elif is_command_available apt-get; then
     echo "apt"
   elif is_command_available dnf; then
     echo "dnf"
@@ -68,6 +81,10 @@ install_packages() {
   local packages=("$@")
 
   case "$pm" in
+    pkg)
+      pkg update -y
+      pkg install -y "${packages[@]}"
+      ;;
     apt)
       sudo apt-get update
       sudo apt-get install -y "${packages[@]}"
@@ -142,47 +159,90 @@ ensure_zsh_in_shells() {
   fi
 
   log "Adding $zsh_path to /etc/shells"
-  echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+  if ! echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null; then
+    warn "Could not update /etc/shells; chsh may fail."
+    return 1
+  fi
 }
 
 set_default_shell_to_zsh() {
-  local zsh_path
-  zsh_path="$(command -v zsh)"
+  if ! is_zsh_installed; then
+    error "zsh is not available; install it before changing the default shell."
+    return 1
+  fi
 
-  if [[ "$SHELL" == "$zsh_path" ]]; then
-    log "zsh is already the default shell for this session ($SHELL)."
+  if is_termux; then
+    log "Termux detected. Skipping chsh."
+    log "Start zsh manually with: zsh"
     return 0
   fi
 
-  ensure_zsh_in_shells
-  chsh -s "$zsh_path"
-  log "Default shell changed to $zsh_path."
+  local zsh_path login_shell user_name
+  zsh_path="$(command -v zsh)"
+  user_name="${USER:-${LOGNAME:-$(id -un)}}"
+  if is_command_available getent; then
+    login_shell="$(getent passwd "$user_name" 2>/dev/null | cut -d: -f7 || true)"
+  else
+    login_shell=""
+  fi
+  login_shell="${login_shell:-${SHELL:-}}"
+
+  if [[ "$login_shell" == "$zsh_path" ]]; then
+    log "zsh is already the login shell ($login_shell)."
+    return 0
+  fi
+
+  if ! ensure_zsh_in_shells; then
+    warn "Continuing without changing the login shell."
+    return 0
+  fi
+  if chsh -s "$zsh_path"; then
+    log "Default shell changed to $zsh_path."
+  else
+    warn "Could not change the login shell with chsh. New Zsh sessions will still export SHELL=$zsh_path."
+  fi
   log "Open a new session for full effect."
 }
 
-migrate_zsh_startup_files() {
-  local name legacy target backup timestamp
-  timestamp="$(date +%Y%m%d%H%M%S)"
-  for name in .zshrc .zprofile .zlogout; do
-    legacy="$STOW_TARGET/.config/zsh/$name"
-    target="$STOW_TARGET/$name"
-    if [[ -L "$legacy" ]]; then
-      rm -- "$legacy"
-      log "Removed legacy Zsh link: $legacy"
-    elif [[ -f "$legacy" ]]; then
-      backup="${legacy}.backup.${timestamp}"
-      mv -- "$legacy" "$backup"
-      log "Backed up legacy Zsh file: $legacy -> $backup"
+backup_stow_conflicts() {
+  local source relative_path target backup
+
+  while IFS= read -r -d '' source; do
+    relative_path="${source#"$SCRIPT_DIR/"}"
+    target="$STOW_TARGET/$relative_path"
+
+    if [[ ! -e "$target" && ! -L "$target" ]]; then
+      continue
     fi
-    if [[ -f "$target" && ! -L "$target" ]]; then
-      backup="${target}.backup.${timestamp}"
-      mv -- "$target" "$backup"
-      log "Backed up existing Zsh file: $target -> $backup"
+
+    if [[ -L "$target" ]] && [[ "$(readlink -f "$target" 2>/dev/null || true)" == "$source" ]]; then
+      continue
     fi
-  done
+
+    if [[ -d "$target" && ! -L "$target" ]]; then
+      continue
+    fi
+
+    backup="${target}.dotfiles-backup"
+    mv -f -- "$target" "$backup"
+    log "Backed up existing file: $target -> $backup"
+  done < <(
+    find "$SCRIPT_DIR" -type f \
+      ! -path "$SCRIPT_DIR/.git/*" \
+      ! -path "$SCRIPT_DIR/setup/*" \
+      ! -name 'setup-*.sh' \
+      ! -name 'install.sh' \
+      ! -name 'uninstall.sh' \
+      -print0
+  )
 }
 
 apply_stow_layout() {
+  if ! is_command_available stow; then
+    error "stow is not available; install it before applying dotfiles."
+    return 1
+  fi
+
   if [[ ! -f "$SCRIPT_DIR/.zshenv" ]]; then
     error "Missing file: $SCRIPT_DIR/.zshenv"
     return 1
@@ -193,13 +253,16 @@ apply_stow_layout() {
     return 1
   fi
 
+  backup_stow_conflicts
+
   (
     cd "$SCRIPT_DIR"
-    stow --target="$STOW_TARGET" --restow \
+    stow --target="$STOW_TARGET" --restow --no-folding \
       --ignore='^\.git$' \
+      --ignore='^setup$' \
       --ignore='^setup-.*\.sh$' \
+      --ignore='^install\.sh$' \
       --ignore='^uninstall\.sh$' \
-      --ignore='^\.config/starship\.toml$' \
       .
   )
 

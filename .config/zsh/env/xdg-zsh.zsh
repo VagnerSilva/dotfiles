@@ -24,9 +24,15 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 
-# Startup files stay in $HOME; modules stay under XDG_CONFIG_HOME/zsh.
+# ZSH startup files stay in $HOME; modules use a separate config directory.
 export ZDOTDIR="${ZDOTDIR:-$HOME}"
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$XDG_CONFIG_HOME/zsh}"
 
-# Create necessary cache directories
-mkdir -p "$XDG_CACHE_HOME/zsh"
+# Create the cache directory without depending on PATH during startup.
+if [ -x "${PREFIX:-}/bin/mkdir" ]; then
+  "${PREFIX}/bin/mkdir" -p "$XDG_CACHE_HOME/zsh"
+elif [ -x /bin/mkdir ]; then
+  /bin/mkdir -p "$XDG_CACHE_HOME/zsh"
+elif [ -x /usr/bin/mkdir ]; then
+  /usr/bin/mkdir -p "$XDG_CACHE_HOME/zsh"
+fi

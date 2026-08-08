@@ -1,0 +1,4 @@
+interface:
+  display_name: "Integração de Fontes no Terminal"
+  short_description: "Configure Nerd Fonts com segurança"
+  default_prompt: "Use $terminal-font-integration para diagnosticar ou alterar com segurança a instalação de Nerd Fonts e configurações de terminal neste repositório."

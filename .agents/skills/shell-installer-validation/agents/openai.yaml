@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validação de Instaladores Shell"
+  short_description: "Teste instaladores sem tocar no sistema"
+  default_prompt: "Use $shell-installer-validation para validar com segurança um instalador ou desinstalador deste repositório em um ambiente temporário."

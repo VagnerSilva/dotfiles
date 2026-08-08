@@ -9,6 +9,12 @@ source_if_exists() {
   fi
 }
 
+# Interactive terminals do not always start as login shells. Reuse the
+# login environment setup when .zprofile was not read automatically.
+if [ "${_ZPROFILE_SOURCED:-}" != 1 ]; then
+  source_if_exists "$HOME/.zprofile"
+fi
+
 # ========================================
 # 🧱 RC MODULES
 # ========================================
@@ -16,7 +22,6 @@ source_if_exists "$ZSH_CONFIG_DIR/rc/options.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/rc/aliases.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/rc/history.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/rc/zinit.zsh"
-source_if_exists "$ZSH_CONFIG_DIR/rc/p10k.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/rc/completion.zsh"
 source_if_exists "$ZSH_CONFIG_DIR/rc/tools.zsh"
 
@@ -27,6 +32,10 @@ if type load_zle_plugins >/dev/null 2>&1; then
   load_zle_plugins
 fi
 
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="/home/vagners/.sdkman"
-[[ -s "/home/vagners/.sdkman/bin/sdkman-init.sh" ]] && source "/home/vagners/.sdkman/bin/sdkman-init.sh"
+# pnpm
+export PNPM_HOME="/home/vs/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac
+# pnpm end

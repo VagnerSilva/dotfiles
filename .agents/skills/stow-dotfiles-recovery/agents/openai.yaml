@@ -1,0 +1,4 @@
+interface:
+  display_name: "Recuperação de Dotfiles Stow"
+  short_description: "Recupere links Stow com segurança"
+  default_prompt: "Use $stow-dotfiles-recovery para diagnosticar, aplicar ou reverter links de dotfiles com GNU Stow sem perder arquivos do usuário."

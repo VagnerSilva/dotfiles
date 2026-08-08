@@ -1,0 +1,4 @@
+interface:
+  display_name: "Segurança de Bootstrap Externo"
+  short_description: "Endureça downloads e instaladores externos"
+  default_prompt: "Use $external-tool-bootstrap-security para revisar ou alterar com segurança downloads, arquivos e instaladores externos deste repositório."

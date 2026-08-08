@@ -43,14 +43,26 @@
 # }}
 
 # Load environment modules explicitly so XDG is available first.
-source "$ZSH_CONFIG_DIR/env/xdg-zsh.zsh"
-source "$ZSH_CONFIG_DIR/env/paths.zsh"
-source "$ZSH_CONFIG_DIR/env/general.zsh"
-source "$ZSH_CONFIG_DIR/env/programs.zsh"
-source "$ZSH_CONFIG_DIR/env/sdkman.zsh"
+if [ "${_ZPROFILE_SOURCED:-}" = 1 ]; then
+  return 0
+fi
+
+export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
+
+source_if_exists() {
+  local file="$1"
+  if [ -f "$file" ]; then
+    source "$file"
+  fi
+}
+
+source_if_exists "$ZSH_CONFIG_DIR/env/paths.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/env/general.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/env/programs.zsh"
+source_if_exists "$ZSH_CONFIG_DIR/env/sdkman.zsh"
 
 # Mark as sourced so .zshrc can skip re-sourcing on login shells.
-export _ZPROFILE_SOURCED=1
+typeset -g _ZPROFILE_SOURCED=1
 
 # Profiling - end {{
 #zprof

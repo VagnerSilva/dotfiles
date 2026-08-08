@@ -2,10 +2,14 @@
 
 set -euo pipefail
 
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup/common.sh"
+
 FONT_NAME="${NERD_FONT_NAME:-Meslo}"
 FONT_VERSION="${NERD_FONT_VERSION:-v3.2.1}"
-FONT_ZIP="${FONT_NAME}.zip"
-FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/${FONT_VERSION}/${FONT_ZIP}"
+FONT_REGULAR_FILE="MesloLGSNerdFont-Regular.ttf"
+FONT_BOLD_FILE="MesloLGSNerdFont-Bold.ttf"
+FONT_REGULAR_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/${FONT_VERSION}/patched-fonts/Meslo/S/Regular/${FONT_REGULAR_FILE}"
+FONT_BOLD_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/${FONT_VERSION}/patched-fonts/Meslo/S/Bold/${FONT_BOLD_FILE}"
 
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -29,12 +33,19 @@ error() {
 confirm_step() {
   local message="$1"
   local answer
-  printf '%s [y/N]: ' "$message"
-  read -r answer
-  case "$answer" in
-    y|Y|yes|YES) return 0 ;;
-    *) return 1 ;;
-  esac
+
+  while true; do
+    printf '%s [y/N]: ' "$message"
+    if ! read -r answer; then
+      warn "Input closed; using the safe default (No)."
+      return 1
+    fi
+    case "$answer" in
+      y|Y|yes|YES) return 0 ;;
+      ""|n|N|no|NO) return 1 ;;
+      *) warn "Invalid option. Enter y or n." ;;
+    esac
+  done
 }
 
 require_command() {
@@ -46,21 +57,20 @@ require_command() {
 }
 
 font_already_installed() {
-  [[ -d "$FONT_DIR" ]] && find "$FONT_DIR" -type f \( -name '*.ttf' -o -name '*.otf' \) | read -r
+  [[ -f "$FONT_DIR/$FONT_REGULAR_FILE" && -f "$FONT_DIR/$FONT_BOLD_FILE" ]]
 }
 
-download_and_extract_font() {
+download_fonts() {
   local tmp_dir
   tmp_dir="$(mktemp -d)"
   trap '[[ -n "${tmp_dir:-}" ]] && rm -rf "$tmp_dir"' RETURN
 
   mkdir -p "$FONT_DIR"
-
-  log "Downloading ${FONT_NAME} Nerd Font (${FONT_VERSION})..."
-  curl -fL "$FONT_URL" -o "$tmp_dir/$FONT_ZIP"
-
-  log "Extracting font files to $FONT_DIR"
-  unzip -o "$tmp_dir/$FONT_ZIP" -d "$FONT_DIR" >/dev/null
+  log "Downloading ${FONT_NAME} Nerd Font Regular and Bold (${FONT_VERSION})..."
+  curl -fL "$FONT_REGULAR_URL" -o "$tmp_dir/$FONT_REGULAR_FILE"
+  curl -fL "$FONT_BOLD_URL" -o "$tmp_dir/$FONT_BOLD_FILE"
+  install -m 0644 "$tmp_dir/$FONT_REGULAR_FILE" "$FONT_DIR/$FONT_REGULAR_FILE"
+  install -m 0644 "$tmp_dir/$FONT_BOLD_FILE" "$FONT_DIR/$FONT_BOLD_FILE"
 
   trap - RETURN
   rm -rf "$tmp_dir"
@@ -197,19 +207,20 @@ configure_windows_terminals() {
   configure_json_terminal_settings "$vscode" vscode
 
   if [[ -n "$FONT_FILE" ]] && command -v powershell.exe >/dev/null 2>&1; then
-    local windows_font_dir windows_font_file
-    windows_font_dir="$(wslpath -u "$localappdata/Microsoft/Windows/Fonts" 2>/dev/null || true)"
-    if [[ -z "$windows_font_dir" ]]; then
-      warn "Could not resolve the Windows user fonts directory."
+    local font_name font_source
+    font_name="$(basename "$FONT_FILE")"
+    font_source="$(wslpath -w "$FONT_FILE" 2>/dev/null || true)"
+    if [[ -z "$font_source" ]]; then
+      warn "Could not resolve the Windows path for the font file. Configure the terminal font manually in Windows."
       return 0
     fi
-    windows_font_file="$windows_font_dir/$(basename "$FONT_FILE")"
-    mkdir -p "$windows_font_dir"
-    if ! cp -- "$FONT_FILE" "$windows_font_file"; then
+    if ! FONT_SOURCE="$font_source" FONT_NAME="$font_name" powershell.exe -NoProfile -Command '$destination = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Fonts"; New-Item -ItemType Directory -Path $destination -Force | Out-Null; Copy-Item -LiteralPath $env:FONT_SOURCE -Destination (Join-Path $destination $env:FONT_NAME) -Force' >/dev/null 2>&1; then
       warn "Could not copy the font to the Windows user fonts directory. Configure the terminal font manually in Windows."
       return 0
     fi
-    powershell.exe -NoProfile -Command "New-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' -Name '${FONT_FAMILY} (TrueType)' -Value \"\$env:LOCALAPPDATA\\Microsoft\\Windows\\Fonts\\$(basename "$FONT_FILE")\" -PropertyType String -Force | Out-Null" >/dev/null 2>&1 || warn "Could not register font in Windows user profile."
+    if ! FONT_NAME="$font_name" FONT_FAMILY="$FONT_FAMILY" powershell.exe -NoProfile -Command '$font_path = Join-Path $env:LOCALAPPDATA ("Microsoft\Windows\Fonts\" + $env:FONT_NAME); New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name ("{0} (TrueType)" -f $env:FONT_FAMILY) -Value $font_path -PropertyType String -Force | Out-Null' >/dev/null 2>&1; then
+      warn "Font copied, but could not register it in the Windows user profile."
+    fi
     log "Installed Windows font for detected terminals: $FONT_FAMILY"
   fi
 }
@@ -230,13 +241,14 @@ configure_detected_terminals() {
 
 main() {
   require_command curl
-  require_command unzip
+  require_command install
 
   if font_already_installed; then
-    log "Nerd Font already installed: $FONT_NAME"
+    log "Nerd Font already installed: $FONT_NAME (Regular and Bold)"
   else
-    download_and_extract_font
-    log "Nerd Font installation completed: $FONT_NAME"
+    download_fonts
+    record_owned_path "$FONT_DIR"
+    log "Nerd Font installation completed: $FONT_NAME (Regular and Bold)"
   fi
 
   refresh_font_cache

@@ -1,0 +1,4 @@
+interface:
+  display_name: "UX de CLI com Bashly"
+  short_description: "Evolua CLIs Bash com Bashly"
+  default_prompt: "Use $bashly-cli-ux para planejar ou implementar uma migração gradual dos scripts deste repositório para uma CLI Bashly."

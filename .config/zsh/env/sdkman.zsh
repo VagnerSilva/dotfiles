@@ -12,7 +12,7 @@
 #   ✔ Set SDKMAN_DIR to XDG-compliant location
 #
 # LOADED FROM
-#   .zprofile (login shells)
+#   .zprofile (login shells) and .zshrc for non-login Termux sessions
 # }}
 
 export SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"

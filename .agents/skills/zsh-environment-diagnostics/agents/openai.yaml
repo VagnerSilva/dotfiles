@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diagnóstico de Ambiente Zsh"
+  short_description: "Diagnostique inicialização e ambiente Zsh"
+  default_prompt: "Use $zsh-environment-diagnostics para investigar ou corrigir ordem de carregamento, PATH, módulos, plugins ou cache do Zsh neste repositório."
