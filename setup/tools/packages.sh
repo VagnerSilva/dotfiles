@@ -70,7 +70,7 @@ main() {
 		rm -f -- "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
 	fi
 
-	local packages=(fzf fd bat ripgrep direnv cloc zoxide gh)
+	local packages=(fzf fd bat ripgrep direnv cloc zoxide gh eza)
 	local missing=() install_names=()
 	for package in "${packages[@]}"; do
 		local command_name="$package"
