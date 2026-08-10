@@ -34,6 +34,59 @@ install_atuin() {
 	install_atuin_from_official_installer
 }
 
+install_eza() {
+	if is_command_available eza; then
+		log "eza is already installed."
+		return 0
+	fi
+	if ! confirm_step "Install eza (modern ls replacement) via the official release?"; then
+		warn "eza installation skipped."
+		return 0
+	fi
+
+	require_command curl || return 1
+
+	# Map the host architecture to the eza release asset suffix.
+	local arch asset url tmp_dir
+	arch="$(uname -m)"
+	case "$arch" in
+		x86_64)  arch="x86_64-unknown-linux-gnu" ;;
+		aarch64|arm64) arch="aarch64-unknown-linux-gnu" ;;
+		armv7l|armhf)  arch="arm-unknown-linux-gnueabihf" ;;
+		*) error "Unsupported architecture for eza: $(uname -m)"; return 1 ;;
+	esac
+
+	url="https://github.com/eza-community/eza/releases/latest/download/eza_${arch}.tar.gz"
+	tmp_dir="$(mktemp -d)"
+	trap '[[ -n "${tmp_dir:-}" ]] && rm -rf "$tmp_dir"' RETURN
+
+	log "Downloading eza for $arch ..."
+	if ! curl --proto '=https' --tlsv1.2 -LsSf "$url" -o "$tmp_dir/eza.tar.gz"; then
+		error "Failed to download eza from $url"
+		return 1
+	fi
+
+	if ! tar -xzf "$tmp_dir/eza.tar.gz" -C "$tmp_dir"; then
+		error "Failed to extract eza archive."
+		return 1
+	fi
+	[ -x "$tmp_dir/eza" ] || { error "eza binary not found in the downloaded archive."; return 1; }
+
+	# Install to ~/.local/bin (project convention) and mark the path owned so
+	# uninstall can remove it.
+	mkdir -p "$HOME/.local/bin"
+	install -m 0755 "$tmp_dir/eza" "$HOME/.local/bin/eza"
+	record_owned_path "$HOME/.local/bin/eza"
+
+	# Preserve compatibility for scripts/old muscle memory that still call exa.
+	if [ -e /usr/local/bin/exa ] || [ -L /usr/local/bin/exa ]; then
+		sudo rm -f /usr/local/bin/exa
+	fi
+	sudo ln -sf "$HOME/.local/bin/eza" /usr/local/bin/exa
+
+	log "eza installed at $HOME/.local/bin/eza (and symlinked as exa)."
+}
+
 install_atuin_from_official_installer() {
 	local tmp_dir
 	require_command curl || return 1
@@ -70,7 +123,7 @@ main() {
 		rm -f -- "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
 	fi
 
-	local packages=(fzf fd bat ripgrep direnv cloc zoxide gh eza)
+	local packages=(fzf fd bat ripgrep direnv cloc zoxide gh)
 	local missing=() install_names=()
 	for package in "${packages[@]}"; do
 		local command_name="$package"
@@ -98,6 +151,7 @@ main() {
 	fi
 
 	install_atuin
+	install_eza
 }
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
