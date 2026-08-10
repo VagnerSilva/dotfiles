@@ -2,13 +2,18 @@
 set -euo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/common.sh"
 
-manager="$(detect_package_manager)"
-[ -n "$manager" ] || { error "No supported package manager found."; exit 1; }
-
-# Force regeneration after installation or package upgrades.
-if is_command_available direnv; then
-	rm -f -- "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
-fi
+# Map a tool's command name to the package name used by the detected manager.
+# On Debian/Ubuntu the binaries `fd` and `bat` ship in packages named
+# `fd-find` and `bat` respectively, so the uninstall step must record the
+# package name, not the bare command name.
+resolve_install_name() {
+	local command_name="$1" manager="${2:-}"
+	case "$command_name" in
+		fd)  [ "$manager" = apt ] && printf 'fd-find' || printf 'fd' ;;
+		bat) printf 'bat' ;;
+		*)   printf '%s' "$command_name" ;;
+	esac
+}
 
 install_atuin() {
 	if is_command_available atuin; then
@@ -56,36 +61,45 @@ install_atuin_from_official_installer() {
 	log "If the setup wizard did not run, execute 'atuin setup'."
 }
 
-packages=(fzf fd bat ripgrep direnv cloc zoxide gh)
-missing=()
-install_names=()
-for package in "${packages[@]}"; do
-	case "$package" in
-		fd)
-			if [ "$manager" = apt ]; then command_name=fdfind; install_name=fd-find; else command_name=fd; install_name=fd; fi
-			;;
-		bat)
-			if [ "$manager" = apt ]; then command_name=batcat; install_name=bat; else command_name=bat; install_name=bat; fi
-			;;
-		ripgrep) command_name=rg; install_name=ripgrep ;;
-		*) command_name="$package"; install_name="$package" ;;
-	esac
+main() {
+	manager="$(detect_package_manager)"
+	[ -n "$manager" ] || { error "No supported package manager found."; exit 1; }
 
-	if ! is_command_available "$command_name"; then
-		missing+=("$package")
-		install_names+=("$install_name")
+	# Force regeneration after installation or package upgrades.
+	if is_command_available direnv; then
+		rm -f -- "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
 	fi
-done
 
-if [ "${#missing[@]}" -eq 0 ]; then
-	log "CLI packages are already installed or unavailable in this package manager."
-elif ! confirm_step "Install missing CLI packages (${missing[*]})?"; then
-	warn "CLI package installation skipped."
-else
-	install_packages "$manager" "${install_names[@]}"
-	for package in "${missing[@]}"; do
-		record_owned_package "$manager" "$package"
+	local packages=(fzf fd bat ripgrep direnv cloc zoxide gh)
+	local missing=() install_names=()
+	for package in "${packages[@]}"; do
+		local command_name="$package"
+		case "$package" in
+			fd)  [ "$manager" = apt ] && command_name=fdfind || command_name=fd ;;
+			bat) [ "$manager" = apt ] && command_name=batcat || command_name=bat ;;
+			ripgrep) command_name=rg ;;
+		esac
+		if ! is_command_available "$command_name"; then
+			missing+=("$package")
+			install_names+=("$(resolve_install_name "$package" "$manager")")
+		fi
 	done
-fi
 
-install_atuin
+	if [ "${#missing[@]}" -eq 0 ]; then
+		log "CLI packages are already installed or unavailable in this package manager."
+	elif ! confirm_step "Install missing CLI packages (${missing[*]})?"; then
+		warn "CLI package installation skipped."
+	else
+		install_packages "$manager" "${install_names[@]}"
+		# Record the distro package name so uninstall can remove the correct package.
+		for package in "${install_names[@]}"; do
+			record_owned_package "$manager" "$package"
+		done
+	fi
+
+	install_atuin
+}
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+	main "$@"
+fi
