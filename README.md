@@ -57,3 +57,27 @@ executable is generated with:
 ```bash
 bashly generate   # writes bin/dotfiles; never edit it by hand
 ```
+
+### Tests
+
+Shell logic is covered by [Bats](https://github.com/bats-core/bats-core). Run
+the suite after any change to `setup/`, `src/lib/`, or `src/*_command.sh`:
+
+```bash
+bats tests/        # 20 tests: common helpers, package-name mapping, uninstall safety
+```
+
+`tests/` covers the safety-critical paths that `bash -n` cannot: ownership
+recording, the `fd`/`bat` → `fd-find` package-name mapping, and that
+`uninstall` never removes protected packages (`git`/`curl`/`zsh`/`stow`) or
+deletes anything under `--dry-run`.
+
+### Installer security
+
+`setup/tools/*.sh` and `setup-nerd-font.sh` download and execute remote
+installers (atuin, fnm, sdkman) via `curl | sh` or by running a downloaded
+script. These run only after an explicit confirmation prompt, but they are
+third-party scripts fetched over the network. On hosts where you want stronger
+guarantees, vendor the scripts locally or pin and verify checksums before
+running. The VSCode/Windows-Terminal font configuration is best-effort and may
+reformat your `settings.json`.
