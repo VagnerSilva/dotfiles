@@ -1,4 +1,4 @@
-# eza theme tuned to match the existing lsd/ls preferences:
+# eza theme tuned to match the Solarized palette used across the shell:
 # - Solarized-friendly colors
 # - readable metadata in long listings
 # - subdued punctuation and secondary details

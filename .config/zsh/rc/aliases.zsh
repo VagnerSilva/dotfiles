@@ -23,7 +23,7 @@
 #     - Improve defaults for common tools
 #
 #   ✔ Tool substitution and enhancement
-#     - Prefer modern tools if available (eza, lsd, colordiff, cdu)
+#     - Prefer modern tools if available (eza for ls, lsd, colordiff, cdu)
 #     - Normalize behavior across systems (BSD vs GNU)
 #
 #   ✔ Program-specific aliases
