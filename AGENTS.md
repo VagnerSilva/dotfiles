@@ -13,21 +13,32 @@ Installation orchestration is in `install.sh`; reusable helpers are in
 `setup/common.sh`; individual installers are in `setup/` and `setup/tools/`.
 `uninstall.sh` reverses links and records created by the setup flow.
 
+The `dotfiles` CLI is a Bashly-generated command-line interface: the contract
+lives in `src/bashly.yml` (with `src/settings.yml` for generator settings),
+command implementations in `src/*_command.sh`, shared UX helpers in
+`src/lib/ui.sh`, and the generated executable is `bin/dotfiles` (never edit it
+by hand). `install.sh` and `uninstall.sh` are thin wrappers that delegate to
+`bin/dotfiles install` and `bin/dotfiles uninstall`.
+
 ## Build, Test, and Development Commands
 
 There is no build system or automated test suite. Use these checks before
 submitting changes:
 
 ```bash
-bash -n install.sh uninstall.sh setup/*.sh setup/tools/*.sh # Bash syntax
-zsh -n .zshrc .zshenv .zprofile .zlogout                    # Zsh syntax
-bash install.sh                                               # interactive installer
-bash uninstall.sh                                             # remove managed links
+bashly generate                                              # regenerate bin/dotfiles from src/
+bash -n install.sh uninstall.sh setup/*.sh setup/tools/*.sh  # Bash syntax
+bash -n bin/dotfiles                                         # generated CLI syntax
+zsh -n .zshrc .zshenv .zprofile .zlogout                     # Zsh syntax
+bin/dotfiles --help                                          # CLI smoke test
+bash install.sh                                              # interactive installer
+bash uninstall.sh                                            # remove managed links
 ```
 
-Run the installer only in an intended test environment: it may install packages,
-create symlinks, and change the login shell. Use `bash uninstall.sh --yes` only
-when non-interactive cleanup is deliberate.
+Any change to `src/bashly.yml` must be committed together with the regenerated
+`bin/dotfiles`. Run the installer only in an intended test environment: it may
+install packages, create symlinks, and change the login shell. Use
+`bash uninstall.sh --yes` only when non-interactive cleanup is deliberate.
 
 ## Coding Style & Naming Conventions
 
