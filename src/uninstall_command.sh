@@ -80,8 +80,11 @@ remove_stowed_links() {
 		find "$SCRIPT_DIR" -mindepth 1 \
 			-path "$SCRIPT_DIR/.git" -prune -o \
 			-path "$SCRIPT_DIR/setup" -prune -o \
+			-path "$SCRIPT_DIR/src" -prune -o \
+			-path "$SCRIPT_DIR/bin" -prune -o \
 			-name 'setup-*.sh' -prune -o \
 			-name 'uninstall.sh' -prune -o \
+			-name 'settings.yml' -prune -o \
 			\( -type f -o -type d \) -print0
 	)
 }

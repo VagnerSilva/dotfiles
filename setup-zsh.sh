@@ -263,6 +263,9 @@ apply_stow_layout() {
       --ignore='^setup-.*\.sh$' \
       --ignore='^install\.sh$' \
       --ignore='^uninstall\.sh$' \
+      --ignore='^src$' \
+      --ignore='^bin$' \
+      --ignore='^settings\.yml$' \
       .
   )
 
