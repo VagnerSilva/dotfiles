@@ -1,0 +1,43 @@
+name: dotfiles
+version: 0.1.0
+help: |-
+  Gerencia a instalação e reversão do ambiente Zsh deste repositório.
+
+  Uso:
+    dotfiles install     instala zsh, ferramentas, Zinit e Nerd Font
+    dotfiles uninstall   remove apenas recursos criados por este projeto
+    dotfiles check       verifica pré-requisitos e estado, sem alterar nada
+    dotfiles help        mostra a ajuda de um comando
+
+flags:
+  - long: --verbose
+    short: -v
+    help: Exibe logs detalhados de cada etapa.
+
+commands:
+  - name: install
+    help: Instala Zsh, ferramentas, Zinit e Nerd Font com passos guiados.
+    examples:
+      - dotfiles install
+  - name: uninstall
+    help: Remove apenas os recursos criados por este projeto.
+    flags:
+      - long: --dry-run
+        help: Mostra o que seria removido sem alterar nada.
+      - long: --tools
+        help: Remove também os pacotes registrados como instalados por este projeto.
+      - long: --yes
+        help: Pula as confirmações (assume sim).
+  - name: check
+    help: Verifica pré-requisitos e estado da instalação sem alterar nada.
+    examples:
+      - dotfiles check
+      - dotfiles check --verbose
+  - name: help
+    help: Mostra a ajuda de um comando.
+    catch_all:
+      label: command
+      help: Comando cuja ajuda será exibida.
+    examples:
+      - dotfiles help
+      - dotfiles help check
