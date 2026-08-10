@@ -6,8 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Reuse shared helpers (log/warn/error/confirm_step/require_command/is_termux/
 # record_owned_path and XDG_* environment) instead of redefining them.
-# shellcheck source=common.sh
-source "$SCRIPT_DIR/common.sh"
+# shellcheck source=setup/common.sh
+source "$SCRIPT_DIR/setup/common.sh"
 
 FONT_NAME="${NERD_FONT_NAME:-Meslo}"
 FONT_VERSION="${NERD_FONT_VERSION:-v3.2.1}"

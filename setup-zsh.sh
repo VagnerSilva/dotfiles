@@ -6,8 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Reuse shared helpers (log/warn/error/confirm_step/is_termux/is_command_available/
 # detect_package_manager/install_packages) instead of redefining them.
-# shellcheck source=common.sh
-source "$SCRIPT_DIR/common.sh"
+# shellcheck source=setup/common.sh
+source "$SCRIPT_DIR/setup/common.sh"
 
 STOW_TARGET="$HOME"
 
