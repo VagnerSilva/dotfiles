@@ -48,6 +48,7 @@ check_status "fnm" "$({ is_command_available fnm || [ -x "$xdg_data/fnm/fnm" ]; 
 check_status "sdkman" "$([ -f "$HOME/.sdkman/bin/sdkman-init.sh" ] && echo 1 || echo 0)" "missing: run dotfiles install"
 check_status "atuin" "$(is_command_available atuin && echo 1 || echo 0)" "missing: run dotfiles install"
 check_status "zinit" "$([ -f "$zinit_home/zinit.zsh" ] && echo 1 || echo 0)" "missing: run dotfiles install" "$zinit_home/zinit.zsh"
+check_status "eza" "$(is_command_available eza && echo 1 || echo 0)" "missing: run dotfiles install"
 
 check_category "Extras"
 check_status "Nerd Font (Meslo)" "$([ -f "$xdg_data/fonts/NerdFonts/Meslo/MesloLGSNerdFont-Regular.ttf" ] && echo 1 || echo 0)" "missing: run dotfiles install"
