@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2034
 local script_dir cli_target
 local -a completed=()
 

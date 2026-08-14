@@ -308,6 +308,9 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 # Fallback for environments without readlink -f (e.g. macOS, BusyBox).
 [ -d "$SCRIPT_DIR" ] || SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Caller-visible state files; supplied by the importing script or test harness.
+# shellcheck disable=SC2154
+
 confirm() {
 	local message="$1" answer
 	[ "${ASSUME_YES:-false}" = true ] && return 0
@@ -415,6 +418,9 @@ remove_owned_tools() {
 dotfiles_install_command() {
 
   # src/install_command.sh
+  #!/usr/bin/env bash
+
+  # shellcheck disable=SC2034
   local script_dir cli_target
   local -a completed=()
 
@@ -482,6 +488,9 @@ dotfiles_install_command() {
 dotfiles_uninstall_command() {
 
   # src/uninstall_command.sh
+  #!/usr/bin/env bash
+
+  # shellcheck disable=SC2034
   local ASSUME_YES=false
   local DRY_RUN=false
   local REMOVE_TOOLS=false
@@ -535,6 +544,9 @@ dotfiles_uninstall_command() {
 dotfiles_check_command() {
 
   # src/check_command.sh
+  #!/usr/bin/env bash
+
+  # shellcheck disable=SC2034
   local script_dir xdg_config xdg_data xdg_state zinit_home zsh_path
   local login_shell="" verbose="${args[--verbose]:-}"
   local pending=0 total=0
@@ -619,6 +631,9 @@ dotfiles_check_command() {
 dotfiles_help_command() {
 
   # src/help_command.sh
+  #!/usr/bin/env bash
+
+  # shellcheck disable=SC2034
   local self target
   self="$(readlink -f "${BASH_SOURCE[0]}")"
   target="${other_args[0]:-}"

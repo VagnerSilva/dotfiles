@@ -182,11 +182,11 @@ configure_windows_terminals() {
 			warn "Could not resolve the Windows path for the font file. Configure the terminal font manually in Windows."
 			return 0
 		fi
-		if ! FONT_SOURCE="$font_source" FONT_NAME="$font_name" powershell.exe -NoProfile -Command '$destination = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Fonts"; New-Item -ItemType Directory -Path $destination -Force | Out-Null; Copy-Item -LiteralPath $env:FONT_SOURCE -Destination (Join-Path $destination $env:FONT_NAME) -Force' >/dev/null 2>&1; then
+		if ! FONT_SOURCE="$font_source" FONT_NAME="$font_name" powershell.exe -NoProfile -Command '# shellcheck disable=SC2016' '$destination = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Fonts"; New-Item -ItemType Directory -Path $destination -Force | Out-Null; Copy-Item -LiteralPath $env:FONT_SOURCE -Destination (Join-Path $destination $env:FONT_NAME) -Force' >/dev/null 2>&1; then
 			warn "Could not copy the font to the Windows user fonts directory. Configure the terminal font manually in Windows."
 			return 0
 		fi
-		if ! FONT_NAME="$font_name" FONT_FAMILY="$FONT_FAMILY" powershell.exe -NoProfile -Command '$font_path = Join-Path $env:LOCALAPPDATA ("Microsoft\Windows\Fonts\" + $env:FONT_NAME); New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name ("{0} (TrueType)" -f $env:FONT_FAMILY) -Value $font_path -PropertyType String -Force | Out-Null' >/dev/null 2>&1; then
+		if ! FONT_NAME="$font_name" FONT_FAMILY="$FONT_FAMILY" powershell.exe -NoProfile -Command '# shellcheck disable=SC2016' '$font_path = Join-Path $env:LOCALAPPDATA ("Microsoft\Windows\Fonts\" + $env:FONT_NAME); New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name ("{0} (TrueType)" -f $env:FONT_FAMILY) -Value $font_path -PropertyType String -Force | Out-Null' >/dev/null 2>&1; then
 			warn "Font copied, but could not register it in the Windows user profile."
 		fi
 		log "Installed Windows font for detected terminals: $FONT_FAMILY"

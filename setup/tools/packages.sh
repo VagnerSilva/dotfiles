@@ -47,7 +47,8 @@ install_eza() {
 	require_command curl || return 1
 
 	# Map the host architecture to the eza release asset suffix.
-	local arch asset url tmp_dir
+	local arch url tmp_dir
+	asset="${arch:-$(uname -m)}"
 	arch="$(uname -m)"
 	case "$arch" in
 		x86_64)  arch="x86_64-unknown-linux-gnu" ;;

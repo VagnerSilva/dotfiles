@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  lint-and-test:
+    name: Lint and test dotfiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up bashly
+        run: gem install bashly
+
+      - name: Validate bash/zsh syntax
+        run: |
+          bash -n install.sh uninstall.sh setup/*.sh setup/tools/*.sh src/lib/uninstall.sh src/*_command.sh bin/dotfiles
+          zsh -n .zshrc .zshenv .zprofile .zlogout .config/zsh/.zshenv .config/zsh/rc/*.zsh .config/zsh/rc/tools/*.zsh .config/zsh/env/*.zsh
+
+      - name: Regenerate bin/dotfiles
+        run: bashly generate
+
+      - name: Check for generated changes
+        run: git diff --exit-code -- bin/dotfiles
+
+      - name: ShellCheck
+        run: |
+          sudo -S -p '' apt-get update
+          sudo -S -p '' apt-get install -y shellcheck
+          shellcheck --exclude SC1091,SC1090,SC2034,SC2168,SC2148,SC2154,SC2015,SC2090 \
+            setup/*.sh setup/tools/*.sh install.sh uninstall.sh src/lib/*.sh src/*_command.sh bin/dotfiles
+
+      - name: Bats tests
+        run: bats tests/

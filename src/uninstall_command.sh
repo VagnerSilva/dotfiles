@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2034
 local ASSUME_YES=false
 local DRY_RUN=false
 local REMOVE_TOOLS=false

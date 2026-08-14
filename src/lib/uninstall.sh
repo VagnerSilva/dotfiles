@@ -9,6 +9,10 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 # Fallback for environments without readlink -f (e.g. macOS, BusyBox).
 [ -d "$SCRIPT_DIR" ] || SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Caller-visible state files; derive from setup/common.sh when not already set.
+: "${owned_paths_file:=${DOTFILES_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles}/owned-paths}"
+: "${owned_packages_file:=${DOTFILES_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles}/owned-packages}"
+
 confirm() {
 	local message="$1" answer
 	[ "${ASSUME_YES:-false}" = true ] && return 0

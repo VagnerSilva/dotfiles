@@ -45,6 +45,7 @@ install_starship_from_package_manager() {
 }
 
 choose_starship_preset() {
+	# shellcheck disable=SC2034
 	local starship_cmd preset choice
 	starship_cmd="$(starship_command)" || return 0
 

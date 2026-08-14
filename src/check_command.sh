@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2034
 local script_dir xdg_config xdg_data xdg_state zinit_home zsh_path
 local login_shell="" verbose="${args[--verbose]:-}"
 local pending=0 total=0
