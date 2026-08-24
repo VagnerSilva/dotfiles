@@ -71,7 +71,31 @@ detect_package_manager() {
 
 is_root() { [ "$(id -u)" -eq 0 ]; }
 
+apk_ensure_repositories() {
+	local repos_file="/etc/apk/repositories"
+	if [ -s "$repos_file" ]; then
+		return 0
+	fi
+	local alpine_version
+	alpine_version="$(cat /etc/alpine-release 2>/dev/null | cut -d. -f1,2 || true)"
+	if [ -z "$alpine_version" ]; then
+		warn "Could not detect Alpine version; repositories not configured."
+		return 1
+	fi
+	mkdir -p /etc/apk
+	cat > "$repos_file" <<EOF
+https://dl-cdn.alpinelinux.org/alpine/v${alpine_version}/main
+https://dl-cdn.alpinelinux.org/alpine/v${alpine_version}/community
+EOF
+	log "Alpine repositories written to $repos_file"
+}
+
 apk_install() {
+	if ! apk_ensure_repositories; then
+		error "Alpine package repositories are not configured. Set /etc/apk/repositories manually."
+		return 1
+	fi
+	apk update
 	if is_root; then
 		apk add --no-cache "$@"
 	else
