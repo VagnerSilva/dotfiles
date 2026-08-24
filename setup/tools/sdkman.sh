@@ -2,10 +2,7 @@
 set -euo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/common.sh"
 SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
-is_sdkman_installed() {
-	[ -f "$SDKMAN_DIR/bin/sdkman-init.sh" ] && is_command_available sdk
-}
-if is_sdkman_installed; then log "SDKMAN is already installed."; exit 0; fi
+if is_command_available sdk; then log "SDKMAN is already installed."; exit 0; fi
 if ! confirm_step "Install SDKMAN?"; then warn "SDKMAN installation skipped."; exit 0; fi
 installer="$(mktemp)"; trap 'rm -f "$installer"' EXIT
 download_ok=false

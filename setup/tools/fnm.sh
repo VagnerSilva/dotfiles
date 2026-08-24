@@ -3,7 +3,7 @@ set -euo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/common.sh"
 FNM_INSTALL_DIR="${FNM_INSTALL_DIR:-$XDG_DATA_HOME/fnm}"
 FNM_INSTALLER_URL="https://fnm.vercel.app/install"
-if [ -x "$FNM_INSTALL_DIR/fnm" ] || is_command_available fnm; then log "fnm is already installed."; exit 0; fi
+if is_command_available fnm; then log "fnm is already installed."; exit 0; fi
 if ! confirm_step "Install fnm?"; then warn "fnm installation skipped."; exit 0; fi
 installer="$(mktemp)"; trap 'rm -f "$installer"' EXIT
 download_ok=false
