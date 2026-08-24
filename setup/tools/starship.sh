@@ -86,7 +86,17 @@ if ! starship_command >/dev/null 2>&1; then
 		if is_command_available curl && is_command_available tar; then
 			asset="$(starship_asset)"
 			url="https://github.com/starship/starship/releases/download/v${STARSHIP_VERSION}/${asset}"
-			if curl -fsSL --retry 3 "$url" -o "$archive"; then
+			download_ok=false
+			for attempt in 1 2 3 4 5; do
+				log "Downloading Starship (attempt $attempt)..."
+				if curl --proto '=https' --tlsv1.2 -LsSf --retry 5 --retry-delay 2 --connect-timeout 15 --max-time 180 "$url" -o "$archive"; then
+					download_ok=true
+					break
+				fi
+				warn "Starship download attempt $attempt failed."
+				sleep $((attempt * 2))
+			done
+			if [ "$download_ok" = "true" ]; then
 				mkdir -p "$(dirname "$STARSHIP_BIN")"
 				tar -xzf "$archive" -C "$(dirname "$STARSHIP_BIN")"
 				if [ -x "$STARSHIP_BIN" ]; then

@@ -5,7 +5,6 @@ FNM_INSTALL_DIR="${FNM_INSTALL_DIR:-$XDG_DATA_HOME/fnm}"
 FNM_INSTALLER_URL="https://fnm.vercel.app/install"
 if [ -x "$FNM_INSTALL_DIR/fnm" ] || is_command_available fnm; then log "fnm is already installed."; exit 0; fi
 if ! confirm_step "Install fnm?"; then warn "fnm installation skipped."; exit 0; fi
-require_command curl || { error "curl is required to install fnm."; exit 1; }
 installer="$(mktemp)"; trap 'rm -f "$installer"' EXIT
 download_ok=false
 for attempt in 1 2 3 4 5; do

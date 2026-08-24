@@ -208,17 +208,25 @@ main() {
 	print_summary
 
 	print_step "Step 1/4 - zsh package"
-	if confirm_step "Install zsh (if needed)?"; then
-		ensure_zsh_installed
+	if is_zsh_installed; then
+		log "zsh is already installed."
 	else
-		log "Skipped zsh installation step."
+		if confirm_step "Install zsh?"; then
+			ensure_zsh_installed
+		else
+			log "Skipped zsh installation step."
+		fi
 	fi
 
 	print_step "Step 2/4 - stow package"
-	if confirm_step "Install stow (if needed)?"; then
-		ensure_stow_installed
+	if is_command_available stow; then
+		log "stow is already installed."
 	else
-		log "Skipped stow installation step."
+		if confirm_step "Install stow?"; then
+			ensure_stow_installed
+		else
+			log "Skipped stow installation step."
+		fi
 	fi
 
 	print_step "Step 3/4 - default shell"
