@@ -129,3 +129,17 @@ ensure_packages() {
 	done
 	[ "${#missing[@]}" -eq 0 ] || install_packages "$manager" "${missing[@]}"
 }
+
+ensure_zsh_integration() {
+	local file="$ZDOTDIR/.config/zsh/$1"
+	if [ -f "$file" ]; then
+		return 0
+	fi
+	local dir
+	dir="$(dirname "$file")"
+	mkdir -p "$dir"
+	cat > "$file" <<EOF
+# Auto-created by dotfiles setup: $1
+EOF
+	log "Created missing Zsh integration: $file"
+}

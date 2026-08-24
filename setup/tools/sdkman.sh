@@ -24,4 +24,5 @@ fi
 SDKMAN_DIR="$SDKMAN_DIR" bash "$installer"
 [ -f "$SDKMAN_DIR/bin/sdkman-init.sh" ] || { error "SDKMAN installation failed."; exit 1; }
 record_owned_path "$SDKMAN_DIR"
+ensure_zsh_integration "env/sdkman.zsh"
 log "SDKMAN installed at $SDKMAN_DIR."

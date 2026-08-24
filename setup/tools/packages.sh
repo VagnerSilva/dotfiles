@@ -44,8 +44,7 @@ install_eza() {
 		warn "eza installation skipped."
 		return 0
 	fi
-
-	require_command curl || return 1
+	ensure_packages curl tar
 
 	# Map the host architecture to the eza release asset suffix.
 	local arch url tmp_dir
@@ -87,6 +86,24 @@ install_eza() {
 	sudo ln -sf "$HOME/.local/bin/eza" /usr/local/bin/exa
 
 	log "eza installed at $HOME/.local/bin/eza (and symlinked as exa)."
+	ensure_zsh_integration "rc/tools/eza.zsh"
+	integration_file="$ZDOTDIR/.config/zsh/rc/tools/eza.zsh"
+	if [ ! -s "$integration_file" ]; then
+		cat > "$integration_file" <<EOF
+# eza: modern, git-aware ls replacement.
+# The theme is read automatically from $XDG_CONFIG_HOME/eza/theme.yml
+# (linked by stow from this repo's .config/eza/theme.yml).
+_eza_bin="\$(command -v eza 2>/dev/null || true)"
+if [ -n "\$_eza_bin" ] && [ -x "\$_eza_bin" ]; then
+  alias ls='eza'
+  alias ll='eza -l --git --icons'
+  alias la='eza -a'
+  alias lt='eza --tree --level=2'
+fi
+unset _eza_bin
+EOF
+		log "eza shell integration created at $integration_file"
+	fi
 }
 
 install_atuin_from_official_installer() {

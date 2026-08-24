@@ -117,6 +117,7 @@ else
 		error "Asset: v${STARSHIP_VERSION}/${asset:-unavailable}"
 		exit 1
 	}
+	ensure_zsh_integration "rc/tools/starship.zsh"
 fi
 
 if [ -s "$STARSHIP_PRESET_FILE" ] && is_command_available starship; then
