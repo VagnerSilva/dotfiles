@@ -120,6 +120,23 @@ main() {
 	manager="$(detect_package_manager)"
 	[ -n "$manager" ] || { error "No supported package manager found."; exit 1; }
 
+	# On Alpine, install sudo and curl first because later steps rely on them
+	# both for package installs and for official download-based installers.
+	if [ "$manager" = apk ]; then
+		local alpine_bootstrap=()
+		if ! is_command_available sudo; then
+			alpine_bootstrap+=(sudo)
+		fi
+		if ! is_command_available curl; then
+			alpine_bootstrap+=(curl)
+		fi
+		if [ "${#alpine_bootstrap[@]}" -gt 0 ]; then
+			log "Alpine bootstrap: installing ${alpine_bootstrap[*]} first"
+			apk add --no-cache "${alpine_bootstrap[@]}"
+			record_owned_package "$manager" "${alpine_bootstrap[0]}"
+		fi
+	fi
+
 	# Force regeneration after installation or package upgrades.
 	if is_command_available direnv; then
 		rm -f -- "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/direnv_hook.zsh"
