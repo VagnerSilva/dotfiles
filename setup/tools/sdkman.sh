@@ -4,6 +4,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/common.sh"
 SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
 if is_command_available sdk; then log "SDKMAN is already installed."; exit 0; fi
 if ! confirm_step "Install SDKMAN?"; then warn "SDKMAN installation skipped."; exit 0; fi
+ensure_packages zip unzip
 installer="$(mktemp)"; trap 'rm -f "$installer"' EXIT
 download_ok=false
 for attempt in 1 2 3 4 5; do
