@@ -132,7 +132,7 @@ main() {
 		fi
 		if [ "${#alpine_bootstrap[@]}" -gt 0 ]; then
 			log "Alpine bootstrap: installing ${alpine_bootstrap[*]} first"
-			apk add --no-cache "${alpine_bootstrap[@]}"
+			apk_install "${alpine_bootstrap[@]}"
 			record_owned_package "$manager" "${alpine_bootstrap[0]}"
 		fi
 	fi

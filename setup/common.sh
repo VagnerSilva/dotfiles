@@ -69,6 +69,17 @@ detect_package_manager() {
 	fi
 }
 
+is_root() { [ "$(id -u)" -eq 0 ]; }
+
+apk_install() {
+	if is_root; then
+		apk add --no-cache "$@"
+	else
+		require_command sudo
+		sudo apk add --no-cache "$@"
+	fi
+}
+
 install_packages() {
 	local manager="$1"
 	shift
@@ -80,13 +91,7 @@ install_packages() {
 		yum) sudo yum install -y "$@" ;;
 		pacman) sudo pacman -Sy --noconfirm "$@" ;;
 		zypper) sudo zypper --non-interactive install "$@" ;;
-		apk)
-			if ! is_command_available sudo; then
-				log "sudo not found on Alpine; installing sudo first"
-				apk add --no-cache sudo
-			fi
-			sudo apk add --no-cache "$@"
-			;;
+		apk) apk_install "$@" ;;
 		*) error "Unsupported package manager: ${manager:-none}"; return 1 ;;
 	esac
 }
