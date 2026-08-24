@@ -11,6 +11,7 @@ resolve_install_name() {
 	case "$command_name" in
 		fd)  [ "$manager" = apt ] && printf 'fd-find' || printf 'fd' ;;
 		bat) printf 'bat' ;;
+		gh)  [ "$manager" = apk ] && printf 'github-cli' || printf 'gh' ;;
 		*)   printf '%s' "$command_name" ;;
 	esac
 }

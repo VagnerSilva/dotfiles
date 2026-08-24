@@ -80,7 +80,13 @@ install_packages() {
 		yum) sudo yum install -y "$@" ;;
 		pacman) sudo pacman -Sy --noconfirm "$@" ;;
 		zypper) sudo zypper --non-interactive install "$@" ;;
-		apk) sudo apk add "$@" ;;
+		apk)
+			if ! is_command_available sudo; then
+				log "sudo not found on Alpine; installing sudo first"
+				apk add --no-cache sudo
+			fi
+			sudo apk add --no-cache "$@"
+			;;
 		*) error "Unsupported package manager: ${manager:-none}"; return 1 ;;
 	esac
 }
